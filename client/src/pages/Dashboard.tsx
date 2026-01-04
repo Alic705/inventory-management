@@ -17,16 +17,10 @@ export default function Dashboard() {
   const { stats, isLoading } = useSales();
   const { t } = useI18n();
 
-  // Mock data for chart - in real app would come from API history
-  const chartData = [
-    { name: 'Mon', sales: 4000 },
-    { name: 'Tue', sales: 3000 },
-    { name: 'Wed', sales: 2000 },
-    { name: 'Thu', sales: 2780 },
-    { name: 'Fri', sales: 1890 },
-    { name: 'Sat', sales: 2390 },
-    { name: 'Sun', sales: 3490 },
-  ];
+  const chartData = stats?.weeklySales.map(s => ({
+    name: s.date,
+    sales: s.amount
+  })) ?? [];
 
   if (isLoading) {
     return <div className="p-8 space-y-8">
