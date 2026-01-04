@@ -1,0 +1,312 @@
+# Web-Based Sabzi Mandi Store Software
+
+## Software Requirements Specification (SRS)
+
+---
+
+## 1. Project Overview
+
+This document defines the functional and non-functional requirements for a **Web-Based Sabzi Mandi / Vegetable Store Management System** designed for **Pakistan-based single-branch stores**, with future scalability in mind.
+
+The system must be **minimal, fast, and easy to use**, such that a **non-technical user** can operate it with minimal training.
+
+---
+
+## 2. Project Goals
+
+* Digitize daily sabzi mandi operations
+* Simplify sales, purchase, and stock tracking
+* Provide clear daily profit/loss visibility
+* Reduce manual record keeping
+* Ensure usability for non-technical staff
+
+---
+
+## 3. Target Users
+
+1. **Admin (Owner)**
+2. **Staff / User (Salesman / Counter Staff)**
+
+---
+
+## 4. System Type
+
+* **Web-Based Application**
+* Responsive (Desktop-first, Tablet-friendly)
+* Hosted on cloud server
+* Secure login-based access
+
+---
+
+## 5. User Roles & Modules
+
+### 5.1 Admin Module (Owner)
+
+Admin has full control over the system.
+
+#### Features:
+
+* Secure login
+* Dashboard overview
+* Product management
+* Purchase management
+* Sales reports
+* Stock management
+* Expense management
+* User (staff) management
+* Profit & loss reports
+* Backup & data management
+
+---
+
+### 5.2 Staff / User Module
+
+Staff users have limited access for daily operations.
+
+#### Features:
+
+* Secure login
+* Sales (billing) only
+* View product prices
+* Add sales entries
+* No access to reports or settings
+
+---
+
+## 6. Functional Requirements
+
+### 6.0 Language & Localization Module
+
+The system must support **multi-language functionality** with instant switching.
+
+#### Features:
+
+* Language switcher available in **top navbar / header** (visible on all pages)
+* One-click language change without page reload
+* Supported languages:
+
+  * **English**
+  * **Urdu**
+  * **Roman Urdu**
+* Entire system (menus, buttons, labels, messages, reports) must update according to selected language
+* Selected language should be **saved per user** and remembered on next login
+* Default language configurable by Admin
+
+---
+
+### 6.1 Authentication & Authorization
+
+* Login using username/password or PIN
+* Role-based access control (Admin / Staff)
+* Logout functionality
+
+---
+
+### 6.2 Dashboard (Admin)
+
+The dashboard should display:
+
+* Today’s total sales
+* Today’s total purchases
+* Today’s expenses
+* Estimated profit/loss
+* Current stock summary
+
+---
+
+### 6.3 Product / Item Management
+
+* Add / edit / delete products
+* Product fields:
+
+  * Item name
+  * Category (Sabzi / Phal / Others)
+  * Purchase rate (per kg)
+  * Sale rate (per kg)
+  * Unit (kg / gram)
+* Active / inactive product status
+
+---
+
+### 6.4 Purchase Management
+
+* Add daily purchase entries
+* Supplier name (optional)
+* Item selection
+* Quantity (kg)
+* Purchase rate
+* Total purchase amount
+* Purchase date
+
+---
+
+### 6.5 Sales / POS Module
+
+* Fast billing interface
+* Item selection
+* Quantity input (kg / half / pao)
+* Auto calculation of total
+* Discount option (optional)
+* Cash sale
+* Auto stock deduction
+
+---
+
+### 6.6 Stock Management
+
+* Real-time stock tracking
+* Opening stock
+* Closing stock
+* Manual stock adjustment
+* Waste / spoilage entry
+
+---
+
+### 6.7 Expense Management
+
+* Add daily expenses
+* Expense categories:
+
+  * Rent
+  * Electricity
+  * Salary
+  * Transport
+  * Miscellaneous
+* Expense date & amount
+
+---
+
+### 6.8 Reports Module (Admin Only)
+
+#### Daily Reports:
+
+* Total sales
+* Total purchases
+* Total expenses
+* Net profit / loss
+
+#### Monthly Reports:
+
+* Monthly sales summary
+* Monthly expenses
+* Profit trends
+* Best-selling items
+
+---
+
+### 6.9 User Management (Admin)
+
+* Add / edit / delete staff users
+* Assign roles
+* Activate / deactivate users
+
+---
+
+### 6.10 Backup & Data Safety
+
+* Automatic daily backup
+* Manual backup option
+* Secure cloud storage
+
+---
+
+## 7. Non-Functional Requirements
+
+### 7.1 Performance
+
+* Fast load time (<2 seconds)
+* Optimized for low internet speeds
+
+### 7.2 Usability
+
+* Simple UI
+* Large buttons
+* Minimal text
+* Easy navigation
+* Urdu / Roman Urdu labels (optional)
+
+### 7.3 Security
+
+* Secure authentication
+* Encrypted passwords
+* Role-based access
+
+### 7.4 Scalability
+
+* Ability to add multiple branches in future
+* Modular architecture
+
+---
+
+## 8. UI / UX Guidelines
+
+* Minimalistic design
+* Clean dashboard
+* Touch-friendly layout
+* No unnecessary animations
+
+---
+
+## 9. Technology Stack & Data Persistence (Mandatory)
+
+The system must be developed using the following **mandatory technology stack** to ensure performance, scalability, and secure data storage.
+
+### 9.1 Backend
+
+* **Node.js** with Express.js framework
+* RESTful API architecture
+* Proper separation of controllers, services, and routes
+
+### 9.2 Database (Data Persistence)
+
+* **Relational Database (Mandatory)**
+
+  * Preferred: **MySQL**
+  * Alternative: PostgreSQL
+
+All system data must be **permanently stored in the database**, including but not limited to:
+
+* Users (Admin / Staff)
+* Products / Items
+* Purchases
+* Sales
+* Stock levels
+* Waste / spoilage entries
+* Expenses
+* Language preferences
+
+No critical business data should rely on browser storage (localStorage/sessionStorage).
+
+### 9.3 Frontend
+
+* React.js (recommended)
+* API-based data communication with backend
+
+### 9.4 Hosting & Server
+
+* Cloud-based server (DigitalOcean / AWS)
+* Secure environment variables
+* Automated daily database backups
+
+---
+
+## 10. Success Criteria
+
+The project will be considered successful if:
+
+* A non-technical user can use the system without training
+* Daily sales and stock can be managed easily
+* Admin can view profit/loss in one click
+
+---
+
+## 11. Future Enhancements (Optional)
+
+* Mobile app
+* Barcode support
+* Digital weighing scale integration
+* Customer credit (udhaar) module
+
+---
+
+**End of Document**
