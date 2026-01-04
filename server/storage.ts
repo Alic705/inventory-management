@@ -7,33 +7,22 @@ import {
 import { eq, sql, desc, and, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
-  // Users
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getUsers(): Promise<User[]>;
-
-  // Products
   getProducts(): Promise<Product[]>;
   getProduct(id: number): Promise<Product | undefined>;
   createProduct(product: typeof products.$inferInsert): Promise<Product>;
   updateProduct(id: number, product: Partial<typeof products.$inferInsert>): Promise<Product>;
   deleteProduct(id: number): Promise<void>;
-
-  // Purchases
   createPurchase(purchase: typeof purchases.$inferInsert): Promise<Purchase>;
   getPurchases(): Promise<(Purchase & { product: Product })[]>;
-
-  // Sales
   createSale(userId: number, items: { productId: number; quantity: number; rate: number }[]): Promise<Sale>;
   getSales(): Promise<(Sale & { user: User })[]>;
-
-  // Expenses
   createExpense(expense: typeof expenses.$inferInsert): Promise<Expense>;
   getExpenses(): Promise<Expense[]>;
-
-  // Stats
-  getDailyStats(): Promise<{ sales: number; purchases: number; expenses: number }>;
+  getDailyStats(): Promise<{ sales: number; purchases: number; expenses: number; weeklySales: { date: string, amount: number }[] }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -82,14 +71,9 @@ export class DatabaseStorage implements IStorage {
   async createPurchase(purchase: typeof purchases.$inferInsert): Promise<Purchase> {
     return await db.transaction(async (tx) => {
       const [newPurchase] = await tx.insert(purchases).values(purchase).returning();
-      
-      // Update stock
-      const [product] = await tx.select().from(products).where(eq(products.id, purchase.productId));
-      if (product) {
-        await tx.update(products)
-          .set({ stock: sql`${products.stock} + ${purchase.quantity}` })
-          .where(eq(products.id, purchase.productId));
-      }
+      await tx.update(products)
+        .set({ stock: sql`${products.stock} + ${purchase.quantity}` })
+        .where(eq(products.id, purchase.productId));
       return newPurchase;
     });
   }
@@ -98,44 +82,26 @@ export class DatabaseStorage implements IStorage {
     const rows = await db.select().from(purchases)
       .leftJoin(products, eq(purchases.productId, products.id))
       .orderBy(desc(purchases.date));
-      
     return rows.map(r => ({ ...r.purchases, product: r.products! }));
   }
 
   async createSale(userId: number, items: { productId: number; quantity: number; rate: number }[]): Promise<Sale> {
     return await db.transaction(async (tx) => {
       let totalAmount = 0;
-      
-      // Calculate total and prepare items
-      const saleItemsData = items.map(item => {
-        const amount = item.quantity * item.rate;
-        totalAmount += amount;
-        return {
-          saleId: 0, // Placeholder
+      items.forEach(item => totalAmount += item.quantity * item.rate);
+      const [newSale] = await tx.insert(sales).values({ userId, totalAmount: Math.round(totalAmount) }).returning();
+      for (const item of items) {
+        await tx.insert(saleItems).values({
+          saleId: newSale.id,
           productId: item.productId,
           quantity: item.quantity,
           rate: item.rate,
-          amount: Math.round(amount), // Ensure integer
-        };
-      });
-
-      // Create Sale
-      const [newSale] = await tx.insert(sales).values({
-        userId,
-        totalAmount: Math.round(totalAmount),
-      }).returning();
-
-      // Insert Items
-      for (const item of saleItemsData) {
-        item.saleId = newSale.id;
-        await tx.insert(saleItems).values(item);
-        
-        // Deduct Stock
+          amount: Math.round(item.quantity * item.rate),
+        });
         await tx.update(products)
           .set({ stock: sql`${products.stock} - ${item.quantity}` })
           .where(eq(products.id, item.productId));
       }
-
       return newSale;
     });
   }
@@ -156,29 +122,32 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(expenses).orderBy(desc(expenses.date));
   }
 
-  async getDailyStats(): Promise<{ sales: number; purchases: number; expenses: number }> {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+  async getDailyStats(): Promise<{ sales: number; purchases: number; expenses: number; weeklySales: { date: string, amount: number }[] }> {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
-    const [salesResult] = await db.select({ total: sql<number>`sum(${sales.totalAmount})` })
-      .from(sales)
-      .where(and(gte(sales.date, startOfDay), lte(sales.date, endOfDay)));
+    const [sResult] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
+      .from(sales).where(and(gte(sales.date, startOfDay), lte(sales.date, endOfDay)));
+    const [pResult] = await db.select({ total: sql<number>`COALESCE(SUM(${purchases.totalAmount}), 0)` })
+      .from(purchases).where(and(gte(purchases.date, startOfDay), lte(purchases.date, endOfDay)));
+    const [eResult] = await db.select({ total: sql<number>`COALESCE(SUM(${expenses.amount}), 0)` })
+      .from(expenses).where(and(gte(expenses.date, startOfDay), lte(expenses.date, endOfDay)));
 
-    const [purchasesResult] = await db.select({ total: sql<number>`sum(${purchases.totalAmount})` })
-      .from(purchases)
-      .where(and(gte(purchases.date, startOfDay), lte(purchases.date, endOfDay)));
-
-    const [expensesResult] = await db.select({ total: sql<number>`sum(${expenses.amount})` })
-      .from(expenses)
-      .where(and(gte(expenses.date, startOfDay), lte(expenses.date, endOfDay)));
+    const weeklySales = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const dEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 23, 59, 59, 999);
+      const [res] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
+        .from(sales).where(and(gte(sales.date, d), lte(sales.date, dEnd)));
+      weeklySales.push({ date: d.toLocaleDateString('en-US', { weekday: 'short' }), amount: Number(res?.total || 0) });
+    }
 
     return {
-      sales: salesResult?.total || 0,
-      purchases: purchasesResult?.total || 0,
-      expenses: expensesResult?.total || 0,
+      sales: Number(sResult?.total || 0),
+      purchases: Number(pResult?.total || 0),
+      expenses: Number(eResult?.total || 0),
+      weeklySales
     };
   }
 }

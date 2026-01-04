@@ -19,10 +19,10 @@ export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   category: text("category", { enum: ["Sabzi", "Phal", "Others"] }).notNull(),
-  purchaseRate: integer("purchase_rate").notNull(), // stored in PKR
-  saleRate: integer("sale_rate").notNull(),       // stored in PKR
+  purchaseRate: integer("purchase_rate").notNull(),
+  saleRate: integer("sale_rate").notNull(),
   unit: text("unit", { enum: ["kg", "gram", "dozen"] }).notNull().default("kg"),
-  stock: real("stock").notNull().default(0),      // stored in units (e.g. 1.5 kg)
+  stock: real("stock").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
 });
 
@@ -31,14 +31,14 @@ export const purchases = pgTable("purchases", {
   productId: integer("product_id").notNull(),
   supplier: text("supplier"),
   quantity: real("quantity").notNull(),
-  rate: integer("rate").notNull(), // Purchase rate at time of entry
+  rate: integer("rate").notNull(),
   totalAmount: integer("total_amount").notNull(),
   date: timestamp("date").defaultNow().notNull(),
 });
 
 export const sales = pgTable("sales", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id"), // Nullable if user deleted, but ideally FK
+  userId: integer("user_id"),
   totalAmount: integer("total_amount").notNull(),
   date: timestamp("date").defaultNow().notNull(),
 });
@@ -48,13 +48,13 @@ export const saleItems = pgTable("sale_items", {
   saleId: integer("sale_id").notNull(),
   productId: integer("product_id").notNull(),
   quantity: real("quantity").notNull(),
-  rate: integer("rate").notNull(), // Sale rate at time of sale
+  rate: integer("rate").notNull(),
   amount: integer("amount").notNull(),
 });
 
 export const expenses = pgTable("expenses", {
   id: serial("id").primaryKey(),
-  category: text("category").notNull(), // Rent, Electricity, Salary, etc.
+  category: text("category").notNull(),
   amount: integer("amount").notNull(),
   description: text("description"),
   date: timestamp("date").defaultNow().notNull(),

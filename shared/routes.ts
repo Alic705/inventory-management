@@ -14,14 +14,12 @@ export const errorSchemas = {
   }),
 };
 
-// Sale Input Schema (Nested)
 export const createSaleSchema = z.object({
   items: z.array(z.object({
     productId: z.number(),
     quantity: z.number(),
-    rate: z.number(), // Explicit rate or backend fetched? Better explicit for POS flexibility
+    rate: z.number(),
   })),
-  // totalAmount calculated on backend or verified
 });
 
 export const api = {
@@ -166,6 +164,10 @@ export const api = {
           dailyPurchases: z.number(),
           dailyExpenses: z.number(),
           profit: z.number(),
+          weeklySales: z.array(z.object({
+            date: z.string(),
+            amount: z.number()
+          }))
         }),
       },
     },
