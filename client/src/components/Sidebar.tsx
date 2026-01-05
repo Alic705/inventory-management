@@ -1,24 +1,29 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
-import { 
-  LayoutDashboard, 
-  Store, 
-  Package, 
-  ShoppingCart, 
-  Receipt, 
-  Users, 
-  BarChart3, 
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  LayoutDashboard,
+  Store,
+  Package,
+  ShoppingCart,
+  Receipt,
+  Users,
+  BarChart3,
   LogOut,
   Leaf
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
+import { Sheet, SheetContent } from "./ui/sheet";
+import { useSidebar } from "./ui/sidebar";
 
 export function Sidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const { t } = useI18n();
+  const isMobile = useIsMobile();
+  const { openMobile, setOpenMobile } = useSidebar();
 
   const links = [
     { href: "/", label: t.dashboard, icon: LayoutDashboard },
@@ -33,15 +38,21 @@ export function Sidebar() {
     links.splice(5, 0, { href: "/users", label: t.users, icon: Users });
   }
 
-  return (
-    <div className="flex h-screen flex-col justify-between border-r bg-card w-64 p-4 shadow-xl shadow-black/5 z-20">
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
+  const SidebarContent = () => (
+    <div className="flex h-full flex-col justify-between bg-card p-4">
       <div className="space-y-6">
         <div className="flex items-center gap-3 px-2 py-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-green-600 text-white shadow-lg shadow-primary/20">
             <Leaf className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold tracking-tight text-primary">Sabzi Mandi</h1>
+            <h1 className="font-display text-xl font-bold tracking-tight text-primary"> Market </h1>
             <p className="text-xs font-medium text-muted-foreground">Manager</p>
           </div>
         </div>
@@ -50,7 +61,7 @@ export function Sidebar() {
           {links.map((link) => {
             const isActive = location === link.href;
             return (
-              <Link key={link.href} href={link.href}>
+              <Link key={link.href} href={link.href} onClick={handleLinkClick}>
                 <button
                   className={cn(
                     "flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
@@ -80,15 +91,34 @@ export function Sidebar() {
             </div>
           </div>
         </div>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20 hover:border-destructive/50"
-          onClick={() => logout()}
+          onClick={() => {
+            logout();
+            if (isMobile) setOpenMobile(false);
+          }}
         >
           <LogOut className="h-4 w-4" />
           {t.logout}
         </Button>
       </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+        <SheetContent side="left" className="w-[280px] p-0 bg-card border-r">
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <div className="flex h-screen flex-col justify-between border-r bg-card w-64 p-4 shadow-xl shadow-black/5 z-20">
+      <SidebarContent />
     </div>
   );
 }

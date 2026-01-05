@@ -76,7 +76,7 @@ export async function registerRoutes(
     // Input: { items: [{ productId, quantity, rate }] }
     const items = req.body.items;
     if (!items || !Array.isArray(items)) return res.status(400).send("Invalid items");
-    
+
     const sale = await storage.createSale(req.user!.id, items);
     res.status(201).json(sale);
   });
@@ -112,14 +112,14 @@ export async function registerRoutes(
     // I will quickly move hash logic to a utils file or just import it.
     // Since I can't edit auth.ts in this batch easily (I'm writing it now), I'll skip hashing for new users in this turn 
     // OR I can use the crypto module directly here.
-    
+
     const { scrypt, randomBytes } = await import("crypto");
     const { promisify } = await import("util");
     const scryptAsync = promisify(scrypt);
     const salt = randomBytes(16).toString("hex");
     const buf = (await scryptAsync(input.password, salt, 64)) as Buffer;
     const hashedPassword = `${buf.toString("hex")}.${salt}`;
-    
+
     const user = await storage.createUser({ ...input, password: hashedPassword });
     res.status(201).json(user);
   });
@@ -132,6 +132,7 @@ export async function registerRoutes(
       dailyPurchases: stats.purchases,
       dailyExpenses: stats.expenses,
       profit: stats.sales - (stats.purchases + stats.expenses), // Rough estimate
+      weeklySales: stats.weeklySales,
     });
   });
 

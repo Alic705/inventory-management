@@ -7,7 +7,7 @@ export function useSales() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: sales, isLoading } = useQuery({
+  const { data: sales, isLoading: isSalesLoading } = useQuery({
     queryKey: [api.sales.list.path],
     queryFn: async () => {
       const res = await fetch(api.sales.list.path);
@@ -16,7 +16,7 @@ export function useSales() {
     },
   });
 
-  const { data: stats } = useQuery({
+  const { data: stats, isLoading: isStatsLoading } = useQuery({
     queryKey: [api.stats.get.path],
     queryFn: async () => {
       const res = await fetch(api.stats.get.path);
@@ -24,6 +24,8 @@ export function useSales() {
       return api.stats.get.responses[200].parse(await res.json());
     },
   });
+
+  const isLoading = isSalesLoading || isStatsLoading;
 
   const createSale = useMutation({
     mutationFn: async (data: z.infer<typeof createSaleSchema>) => {

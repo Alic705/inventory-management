@@ -42,22 +42,22 @@ export default function Expenses() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 sm:p-6 md:p-8 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-display font-bold">Expenses</h2>
-          <p className="text-muted-foreground">Track daily operating costs.</p>
+          <h2 className="text-2xl sm:text-3xl font-display font-bold">Expenses</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">Track daily operating costs.</p>
         </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-xl shadow-lg shadow-primary/25">
+            <Button className="rounded-xl shadow-lg shadow-primary/25 w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" /> Add Expense
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-2xl">
+          <DialogContent className="rounded-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add Expense</DialogTitle>
+              <DialogTitle className="text-lg sm:text-xl">Add Expense</DialogTitle>
             </DialogHeader>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
               <div className="space-y-2">
@@ -88,7 +88,7 @@ export default function Expenses() {
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button type="submit" disabled={createExpense.isPending}>
+                <Button type="submit" disabled={createExpense.isPending} className="w-full sm:w-auto">
                   {createExpense.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Expense
                 </Button>
@@ -99,30 +99,32 @@ export default function Expenses() {
       </div>
 
       <Card className="rounded-2xl border-border/50 shadow-sm">
-        <Table>
-          <TableHeader className="bg-muted/30">
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow><TableCell colSpan={4} className="text-center py-8">Loading...</TableCell></TableRow>
-            ) : (
-              expenses?.map(e => (
-                <TableRow key={e.id}>
-                  <TableCell className="text-muted-foreground">{new Date(e.date).toLocaleDateString()}</TableCell>
-                  <TableCell className="font-medium">{e.category}</TableCell>
-                  <TableCell>{e.description || '-'}</TableCell>
-                  <TableCell className="text-right font-bold text-destructive">Rs {e.amount}</TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow>
+                <TableHead className="min-w-[100px]">Date</TableHead>
+                <TableHead className="min-w-[120px]">Category</TableHead>
+                <TableHead className="min-w-[150px]">Description</TableHead>
+                <TableHead className="text-right min-w-[100px]">Amount</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={4} className="text-center py-8">Loading...</TableCell></TableRow>
+              ) : (
+                expenses?.map(e => (
+                  <TableRow key={e.id}>
+                    <TableCell className="text-muted-foreground text-sm">{new Date(e.date).toLocaleDateString()}</TableCell>
+                    <TableCell className="font-medium">{e.category}</TableCell>
+                    <TableCell>{e.description || '-'}</TableCell>
+                    <TableCell className="text-right font-bold text-destructive">Rs {e.amount}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
     </div>
   );

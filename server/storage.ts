@@ -123,24 +123,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDailyStats(): Promise<{ sales: number; purchases: number; expenses: number; weeklySales: { date: string, amount: number }[] }> {
-    const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-
+    // Use PostgreSQL date casting to properly compare dates (handles timezone correctly)
     const [sResult] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
-      .from(sales).where(and(gte(sales.date, startOfDay), lte(sales.date, endOfDay)));
+      .from(sales).where(sql`${sales.date}::date = CURRENT_DATE`);
     const [pResult] = await db.select({ total: sql<number>`COALESCE(SUM(${purchases.totalAmount}), 0)` })
-      .from(purchases).where(and(gte(purchases.date, startOfDay), lte(purchases.date, endOfDay)));
+      .from(purchases).where(sql`${purchases.date}::date = CURRENT_DATE`);
     const [eResult] = await db.select({ total: sql<number>`COALESCE(SUM(${expenses.amount}), 0)` })
-      .from(expenses).where(and(gte(expenses.date, startOfDay), lte(expenses.date, endOfDay)));
+      .from(expenses).where(sql`${expenses.date}::date = CURRENT_DATE`);
 
     const weeklySales = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-      const dEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 23, 59, 59, 999);
       const [res] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
-        .from(sales).where(and(gte(sales.date, d), lte(sales.date, dEnd)));
-      weeklySales.push({ date: d.toLocaleDateString('en-US', { weekday: 'short' }), amount: Number(res?.total || 0) });
+        .from(sales).where(sql`${sales.date}::date = CURRENT_DATE - INTERVAL '${sql.raw(String(i))} days'`);
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      weeklySales.push({ date: date.toLocaleDateString('en-US', { weekday: 'short' }), amount: Number(res?.total || 0) });
     }
 
     return {
