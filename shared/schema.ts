@@ -54,6 +54,7 @@ export const saleItems = pgTable("sale_items", {
 
 export const expenses = pgTable("expenses", {
   id: serial("id").primaryKey(),
+  userId: integer("user_id"), // null means admin-only expense
   category: text("category").notNull(),
   amount: integer("amount").notNull(),
   description: text("description"),
@@ -94,6 +95,13 @@ export const saleItemsRelations = relations(saleItems, ({ one }) => ({
   product: one(products, {
     fields: [saleItems.productId],
     references: [products.id],
+  }),
+}));
+
+export const expensesRelations = relations(expenses, ({ one }) => ({
+  user: one(users, {
+    fields: [expenses.userId],
+    references: [users.id],
   }),
 }));
 

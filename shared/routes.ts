@@ -102,6 +102,22 @@ export const api = {
         201: z.custom<typeof purchases.$inferSelect>(),
       },
     },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/purchases/:id',
+      input: insertPurchaseSchema.partial(),
+      responses: {
+        200: z.custom<typeof purchases.$inferSelect>(),
+        404: errorSchemas.notFound,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/purchases/:id',
+      responses: {
+        204: z.void(),
+      },
+    },
   },
   sales: {
     list: {
@@ -125,7 +141,7 @@ export const api = {
       method: 'GET' as const,
       path: '/api/expenses',
       responses: {
-        200: z.array(z.custom<typeof expenses.$inferSelect>()),
+        200: z.array(z.custom<typeof expenses.$inferSelect & { user?: typeof users.$inferSelect }>()),
       },
     },
     create: {
@@ -134,6 +150,22 @@ export const api = {
       input: insertExpenseSchema,
       responses: {
         201: z.custom<typeof expenses.$inferSelect>(),
+      },
+    },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/expenses/:id',
+      input: insertExpenseSchema.partial(),
+      responses: {
+        200: z.custom<typeof expenses.$inferSelect>(),
+        404: errorSchemas.notFound,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/expenses/:id',
+      responses: {
+        204: z.void(),
       },
     },
   },
@@ -151,6 +183,22 @@ export const api = {
       input: insertUserSchema,
       responses: {
         201: z.custom<typeof users.$inferSelect>(),
+      },
+    },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/users/:id',
+      input: insertUserSchema.partial(),
+      responses: {
+        200: z.custom<typeof users.$inferSelect>(),
+        404: errorSchemas.notFound,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/users/:id',
+      responses: {
+        204: z.void(),
       },
     },
   },

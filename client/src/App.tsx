@@ -19,11 +19,12 @@ import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-function PrivateRoute({ component: Component, ...rest }: any) {
+function PrivateRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const isMobile = useIsMobile();
 
+  // Show loading while checking authentication
   if (isLoading) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background">
@@ -32,9 +33,17 @@ function PrivateRoute({ component: Component, ...rest }: any) {
     );
   }
 
+  // Redirect to login if not authenticated
   if (!user) {
-    setLocation("/login");
-    return null;
+    // Use useEffect-like behavior to redirect
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
@@ -65,7 +74,7 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
 
-      {/* Protected Routes */}
+      {/* Protected Routes - All require authentication */}
       <Route path="/">
         <PrivateRoute component={Dashboard} />
       </Route>
@@ -85,7 +94,7 @@ function Router() {
         <PrivateRoute component={Users} />
       </Route>
       <Route path="/reports">
-        <PrivateRoute component={Dashboard} /> {/* Reusing Dashboard for now */}
+        <PrivateRoute component={Dashboard} /> {/* Reports page - can be enhanced later */}
       </Route>
 
       <Route component={NotFound} />

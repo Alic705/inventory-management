@@ -41,13 +41,20 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
+        console.log('[auth] LocalStrategy attempt for username:', username);
         const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
+        if (!user) {
+          console.log('[auth] LocalStrategy: user not found:', username);
           return done(null, false);
-        } else {
-          return done(null, user);
         }
+        const ok = await comparePasswords(password, user.password);
+        console.log('[auth] LocalStrategy: password compare result for', username, ok);
+        if (!ok) {
+          return done(null, false);
+        }
+        return done(null, user);
       } catch (err) {
+        console.log('[auth] LocalStrategy error', err);
         return done(err);
       }
     }),
@@ -64,12 +71,25 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: Error | null, user: User | false, info: any) => {
+      console.log('[auth] POST /api/login headers.cookie:', req.headers.cookie);
       if (err) return next(err);
-      if (!user) return res.status(401).json({ message: "Invalid credentials" });
-      req.login(user, (err) => {
+      if (!user) {
+        console.log('[auth] login failed for user:', (req.body as any)?.username);
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      req.login(user, (err: Error | null) => {
         if (err) return next(err);
-        res.json(user);
+        console.log('[auth] login success, isAuthenticated:', req.isAuthenticated(), 'sessionID:', (req as any).sessionID, 'session:', (req as any).session);
+        (req.session as any).user = {
+          id: user.id,
+          username: user.username,
+        };
+        // ensure session is saved before sending response so cookie/session persists
+        (req.session as any).save?.((saveErr: any) => {
+          if (saveErr) return next(saveErr);
+          res.json(user);
+        });
       });
     })(req, res, next);
   });
@@ -82,6 +102,7 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
+    console.log('[auth] GET /api/user headers.cookie:', req.headers.cookie, 'isAuthenticated:', req.isAuthenticated(), 'sessionID:', (req as any).sessionID);
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
   });
