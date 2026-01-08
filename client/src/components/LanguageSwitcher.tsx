@@ -24,7 +24,7 @@ export function LanguageSwitcher() {
           <Globe className="h-5 w-5 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="rounded-xl border-border shadow-lg">
+      <DropdownMenuContent align={window.document.documentElement.dir === 'rtl' ? 'start' : 'end'} className="rounded-xl border-border shadow-lg">
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}

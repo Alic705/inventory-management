@@ -37,6 +37,7 @@ export function useExpenses(filter: ExpenseFilter = "all") {
 
       return api.expenses.list.responses[200].parse(await res.json());
     },
+
   });
 
   const createExpense = useMutation({

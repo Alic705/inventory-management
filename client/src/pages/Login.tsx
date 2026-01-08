@@ -29,7 +29,7 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 p-4 sm:p-6 md:p-8 relative">
-      <div className="absolute top-4 right-4 z-10">
+      <div className="absolute top-0 right-6 z-10">
         <LanguageSwitcher />
       </div>
       <div className="w-full max-w-md space-y-4 sm:space-y-5">

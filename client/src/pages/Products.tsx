@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useProducts } from "@/hooks/use-products";
+import { useTranslate } from "@/hooks/use-translate";
 import { useI18n } from "@/lib/i18n";
-import { getCategoryName } from "@/lib/productNames";
 import { type Product } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function Products() {
   const { products, isLoading, createProduct, updateProduct, deleteProduct } = useProducts();
   const { t, language } = useI18n();
+  const { translateProductName, translateCategory } = useTranslate();
   const [search, setSearch] = useState("");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [open, setOpen] = useState(false);
@@ -120,9 +121,9 @@ export default function Products() {
                   >
                     <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Sabzi">{getCategoryName("Sabzi", language)}</SelectItem>
-                      <SelectItem value="Phal">{getCategoryName("Phal", language)}</SelectItem>
-                      <SelectItem value="Others">{getCategoryName("Others", language)}</SelectItem>
+                      <SelectItem value="Sabzi">{translateCategory("Sabzi")}</SelectItem>
+                      <SelectItem value="Phal">{translateCategory("Phal")}</SelectItem>
+                      <SelectItem value="Others">{translateCategory("Others")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -190,7 +191,7 @@ export default function Products() {
                 <TableHead className="min-w-[100px]">{t.stock}</TableHead>
                 <TableHead className="min-w-[110px]">{t.purchaseRate}</TableHead>
                 <TableHead className="min-w-[100px]">{t.saleRate}</TableHead>
-                <TableHead className="text-right min-w-[100px]">{t.actions}</TableHead>
+                <TableHead className={`min-w-[100px] ${language === 'ur' ? 'text-left' : 'text-right'}`}>{t.actions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -201,8 +202,8 @@ export default function Products() {
               ) : (
                 filteredProducts?.map((product) => (
                   <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{getCategoryName(product.category, language)}</TableCell>
+                    <TableCell className="font-medium">{translateProductName(product.name)}</TableCell>
+                    <TableCell>{translateCategory(product.category)}</TableCell>
                     <TableCell>
                       <span className={product.stock < 5 ? "text-destructive font-bold" : ""}>
                         {product.stock} {product.unit}
@@ -210,8 +211,8 @@ export default function Products() {
                     </TableCell>
                     <TableCell>Rs {product.purchaseRate}</TableCell>
                     <TableCell>Rs {product.saleRate}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell className={language === 'ur' ? 'text-left' : 'text-right'}>
+                      <div className={`flex ${language === 'ur' ? 'justify-start' : 'justify-end'} gap-2`}>
                         <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEdit(product)}>
                           <Pencil className="h-4 w-4" />
                         </Button>

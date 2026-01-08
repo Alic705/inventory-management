@@ -155,7 +155,6 @@ export async function registerRoutes(
   // Expenses
   app.get(api.expenses.list.path, requireAuth, async (req, res) => {
     try {
-      console.log('[api] GET /api/expenses headers.cookie:', req.headers.cookie, 'isAuthenticated:', req.isAuthenticated(), 'user:', req.user ? { id: req.user.id, username: req.user.username, role: req.user.role } : null);
       if (!req.user) return res.status(401).json({ message: "Unauthorized" });
       const { userId: userIdParam, admin } = req.query as {
         userId?: string;
@@ -187,7 +186,6 @@ export async function registerRoutes(
 
   app.post(api.expenses.create.path, requireAuth, async (req, res) => {
     try {
-      console.log('[api] POST /api/expenses headers.cookie:', req.headers.cookie, 'isAuthenticated:', req.isAuthenticated(), 'user:', req.user ? { id: req.user.id, username: req.user.username, role: req.user.role } : null, 'body:', req.body);
       if (!req.user) return res.status(401).json({ message: "Unauthorized" });
       const input = api.expenses.create.input.parse(req.body);
       // If staff user, automatically set userId to their ID

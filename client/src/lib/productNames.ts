@@ -66,17 +66,20 @@ export const categoryNames: Record<string, ProductNameTranslations> = {
 
 // Get product name in specific language
 export function getProductName(productName: string, language: Language): string {
+  // Capitalize first letter for lookup
+  const capitalizedName = productName.charAt(0).toUpperCase() + productName.slice(1).toLowerCase();
+
   // Check in vegetables
-  if (vegetableNames[productName]) {
-    return vegetableNames[productName][language];
+  if (vegetableNames[capitalizedName]) {
+    return vegetableNames[capitalizedName][language];
   }
   // Check in fruits
-  if (fruitNames[productName]) {
-    return fruitNames[productName][language];
+  if (fruitNames[capitalizedName]) {
+    return fruitNames[capitalizedName][language];
   }
   // Check in categories
-  if (categoryNames[productName]) {
-    return categoryNames[productName][language];
+  if (categoryNames[capitalizedName]) {
+    return categoryNames[capitalizedName][language];
   }
   // Return original if not found
   return productName;

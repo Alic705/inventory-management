@@ -41,9 +41,8 @@ export function useAuth() {
           const info = await dbgRes.json();
           console.log('[auth][dev] session:', info);
           // Show a concise dev-only toast
-          toast({ title: 'Dev: session', description: `isAuthenticated: ${info.isAuthenticated}, sessionID: ${info.sessionID ?? 'none'}` });
+          toast({ title: 'Logged in successfully ' });
         } catch (e) {
-          console.log('[auth][dev] session check failed', e);
         }
       };
 

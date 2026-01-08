@@ -2,6 +2,7 @@ import { usePurchases } from "@/hooks/use-purchases";
 import { useProducts } from "@/hooks/use-products";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
+import { useTranslate } from "@/hooks/use-translate";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ export default function Purchases() {
   const { products } = useProducts();
   const { user } = useAuth();
   const { t } = useI18n();
+  const { translateProductName } = useTranslate();
   const [open, setOpen] = useState(false);
   const [editingPurchase, setEditingPurchase] = useState<(Purchase & { product: any }) | null>(null);
   const isAdmin = user?.role === 'admin';
@@ -128,7 +130,7 @@ export default function Purchases() {
                   <SelectTrigger className="rounded-xl"><SelectValue placeholder={t.selectProduct} /></SelectTrigger>
                   <SelectContent>
                     {products?.map(p => (
-                      <SelectItem key={p.id} value={String(p.id)}>{p.name} ({p.unit})</SelectItem>
+                      <SelectItem key={p.id} value={String(p.id)}>{translateProductName(p.name)} ({p.unit})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

@@ -117,18 +117,10 @@ export default function Expenses() {
             <SelectContent>
               <SelectItem value="all">{t.allExpenses}</SelectItem>
               <SelectItem value="admin">{t.adminOnly}</SelectItem>
-              <SelectContent>
-                <SelectItem value="all">{t.allExpenses}</SelectItem>
-                <SelectItem value="admin">{t.adminOnly}</SelectItem>
-
-                {users?.map(u => (
-                  <SelectItem key={u.id} value={String(u.id)}>
-                    {u.username}
-                  </SelectItem>
-                ))}
-              </SelectContent>
               {users?.map(u => (
-                <SelectItem key={u.id} value={String(u.id)}>{u.username}</SelectItem>
+                <SelectItem key={u.id} value={String(u.id)}>
+                  {u.username}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

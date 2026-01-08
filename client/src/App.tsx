@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { I18nProvider } from "@/lib/i18n";
+import { I18nProvider, useI18n } from "@/lib/i18n";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Sidebar } from "@/components/Sidebar";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -18,11 +18,25 @@ import Users from "@/pages/Users";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect } from "react";
 
 function PrivateRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const isMobile = useIsMobile();
+  const { language } = useI18n();
+
+  // Set RTL direction for Urdu
+  useEffect(() => {
+    const htmlElement = document.documentElement;
+    if (language === 'ur') {
+      htmlElement.dir = 'rtl';
+      htmlElement.lang = 'ur';
+    } else {
+      htmlElement.dir = 'ltr';
+      htmlElement.lang = language === 'roman' ? 'en-PK' : 'en';
+    }
+  }, [language]);
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -58,7 +72,7 @@ function PrivateRoute({ component: Component }: { component: React.ComponentType
             </div>
           )}
           {!isMobile && (
-            <div className="absolute top-4 right-4 z-10">
+            <div className={`absolute top-0 z-10 ${language === 'ur' ? 'left-6' : 'right-6'}`} >
               <LanguageSwitcher />
             </div>
           )}
