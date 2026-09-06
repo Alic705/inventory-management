@@ -15,6 +15,9 @@ import Products from "@/pages/Products";
 import Purchases from "@/pages/Purchases";
 import Expenses from "@/pages/Expenses";
 import Users from "@/pages/Users";
+import Clients from "@/pages/Clients";
+import ClientDetail from "@/pages/ClientDetail";
+import Reports from "@/pages/Reports";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -104,11 +107,17 @@ function Router() {
       <Route path="/expenses">
         <PrivateRoute component={Expenses} />
       </Route>
+      <Route path="/clients">
+        <PrivateRoute component={Clients} />
+      </Route>
+      <Route path="/clients/:id">
+        <PrivateRoute component={ClientDetail} />
+      </Route>
       <Route path="/users">
         <PrivateRoute component={Users} />
       </Route>
       <Route path="/reports">
-        <PrivateRoute component={Dashboard} /> {/* Reports page - can be enhanced later */}
+        <PrivateRoute component={Reports} />
       </Route>
 
       <Route component={NotFound} />

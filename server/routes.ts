@@ -1,8 +1,17 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, seedAdmin } from "./auth";
+import { setupAuth, seedAdmin, hashPassword } from "./auth";
 import { api } from "@shared/routes";
+import {
+  insertClientSchema,
+  insertClientPaymentSchema,
+  insertUserSchema,
+  insertProductSchema,
+  insertPurchaseSchema,
+  insertExpenseSchema,
+  createSaleSchema
+} from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(
@@ -15,29 +24,19 @@ export async function registerRoutes(
   // Dev-only debug endpoint to inspect session/test auth
   if (process.env.NODE_ENV !== 'production') {
     app.get('/api/debug/session', (req, res) => {
-      res.json({ isAuthenticated: req.isAuthenticated(), user: req.user, cookies: req.headers.cookie, sessionID: (req as any).sessionID, session: (req as any).session });
+      res.json({
+        isAuthenticated: req.isAuthenticated(),
+        user: req.user,
+        cookies: req.headers.cookie,
+        sessionID: (req as any).sessionID,
+        session: (req as any).session
+      });
     });
 
     // dev helper to list users
     app.get('/api/debug/users', async (_req, res) => {
       const users = await storage.getUsers();
       res.json(users);
-    });
-
-    // dev helper to create a fresh admin (password: admin123)
-    app.post('/api/debug/create-admin', async (_req, res) => {
-      const { scrypt, randomBytes } = await import('crypto');
-      const { promisify } = await import('util');
-      const scryptAsync = promisify(scrypt);
-      const salt = randomBytes(16).toString('hex');
-      const buf = (await scryptAsync('admin123', salt, 64)) as Buffer;
-      const hashedPassword = `${buf.toString('hex')}.${salt}`;
-      try {
-        const user = await storage.createUser({ username: 'admin', password: hashedPassword, role: 'admin', language: 'en', isActive: true });
-        res.status(201).json(user);
-      } catch (err: any) {
-        res.status(400).json({ message: err.message || 'create admin failed' });
-      }
     });
   }
 
@@ -47,15 +46,24 @@ export async function registerRoutes(
     res.status(401).json({ message: "Unauthorized" });
   };
 
-  // Products
-  app.get(api.products.list.path, requireAuth, async (req, res) => {
+  // Middleware to check admin role
+  const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Forbidden: Admin access required" });
+    }
+    next();
+  };
+
+  // ==================== PRODUCTS ====================
+  app.get(api.products.list.path, requireAuth, async (_req, res) => {
     const products = await storage.getProducts();
     res.json(products);
   });
 
   app.post(api.products.create.path, requireAuth, async (req, res) => {
     try {
-      const input = api.products.create.input.parse(req.body);
+      const input = insertProductSchema.parse(req.body);
       const product = await storage.createProduct(input);
       res.status(201).json(product);
     } catch (err) {
@@ -69,8 +77,8 @@ export async function registerRoutes(
 
   app.put(api.products.update.path, requireAuth, async (req, res) => {
     try {
-      const input = api.products.update.input.parse(req.body);
-      const product = await storage.updateProduct(Number(req.params.id), input);
+      const input = insertProductSchema.partial().parse(req.body);
+      const product = await storage.updateProduct(req.params.id, input);
       res.json(product);
     } catch (err) {
       res.status(400).json({ message: "Update failed" });
@@ -79,80 +87,89 @@ export async function registerRoutes(
 
   app.delete(api.products.delete.path, requireAuth, async (req, res) => {
     try {
-      await storage.deleteProduct(Number(req.params.id));
+      await storage.deleteProduct(req.params.id);
       res.sendStatus(204);
     } catch (err) {
       res.status(400).json({ message: "Delete failed" });
     }
   });
 
-  // Purchases
-  app.get(api.purchases.list.path, requireAuth, async (req, res) => {
+  // ==================== PURCHASES ====================
+  app.get(api.purchases.list.path, requireAuth, async (_req, res) => {
     const purchases = await storage.getPurchases();
     res.json(purchases);
   });
 
   app.post(api.purchases.create.path, requireAuth, async (req, res) => {
     try {
-      const input = api.purchases.create.input.parse(req.body);
+      if (req.body.clientId === "none" || req.body.clientId === "") {
+        req.body.clientId = null;
+      }
+      const input = insertPurchaseSchema.parse(req.body);
       const purchase = await storage.createPurchase(input);
       res.status(201).json(purchase);
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Purchase creation error:", err);
       if (err instanceof z.ZodError) {
-        res.status(400).json({ message: err.errors[0].message });
+        res.status(400).json({ message: err.errors[0]?.message || "Invalid purchase data" });
       } else {
-        throw err;
+        res.status(400).json({ message: err.message || "Failed to record purchase" });
       }
     }
   });
 
-  app.put(api.purchases.update.path, requireAuth, async (req, res) => {
-    if (!req.user || req.user.role !== 'admin') return res.sendStatus(403);
+  app.put(api.purchases.update.path, requireAdmin, async (req, res) => {
     try {
-      const input = api.purchases.update.input.parse(req.body);
-      const purchase = await storage.updatePurchase(Number(req.params.id), input);
+      if (req.body.clientId === "none" || req.body.clientId === "") {
+        req.body.clientId = null;
+      }
+      const input = insertPurchaseSchema.partial().parse(req.body);
+      const purchase = await storage.updatePurchase(req.params.id, input);
       res.json(purchase);
-    } catch (err) {
+    } catch (err: any) {
       if (err instanceof z.ZodError) {
-        res.status(400).json({ message: err.errors[0].message });
+        res.status(400).json({ message: err.errors[0]?.message || "Invalid purchase update" });
       } else {
-        res.status(400).json({ message: "Update failed" });
+        res.status(400).json({ message: err.message || "Update failed" });
       }
     }
   });
 
-  app.delete(api.purchases.delete.path, requireAuth, async (req, res) => {
-    if (!req.user || req.user.role !== 'admin') return res.sendStatus(403);
+  app.delete(api.purchases.delete.path, requireAdmin, async (req, res) => {
     try {
-      await storage.deletePurchase(Number(req.params.id));
+      await storage.deletePurchase(req.params.id);
       res.sendStatus(204);
-    } catch (err) {
-      res.status(400).json({ message: "Delete failed" });
+    } catch (err: any) {
+      res.status(400).json({ message: err.message || "Delete failed" });
     }
   });
 
-  // Sales
-  app.get(api.sales.list.path, requireAuth, async (req, res) => {
+  // ==================== SALES ====================
+  app.get(api.sales.list.path, requireAuth, async (_req, res) => {
     const sales = await storage.getSales();
     res.json(sales);
   });
 
   app.post(api.sales.create.path, requireAuth, async (req, res) => {
     try {
-      const input = api.sales.create.input.parse(req.body);
       if (!req.user) return res.status(401).json({ message: "Unauthorized" });
-      const sale = await storage.createSale(req.user.id, input.items);
+      if (req.body.clientId === "walk-in" || req.body.clientId === "none" || req.body.clientId === "") {
+        req.body.clientId = null;
+      }
+      const input = createSaleSchema.parse(req.body);
+      const sale = await storage.createSale(req.user.id, input.items, input.clientId);
       res.status(201).json(sale);
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Sale creation error:", err);
       if (err instanceof z.ZodError) {
-        res.status(400).json({ message: err.errors[0].message });
+        res.status(400).json({ message: err.errors[0]?.message || "Invalid sale data" });
       } else {
-        throw err;
+        res.status(400).json({ message: err.message || "Failed to create sale" });
       }
     }
   });
 
-  // Expenses
+  // ==================== EXPENSES ====================
   app.get(api.expenses.list.path, requireAuth, async (req, res) => {
     try {
       if (!req.user) return res.status(401).json({ message: "Unauthorized" });
@@ -161,19 +178,16 @@ export async function registerRoutes(
         admin?: string;
       };
 
-      let userId: number | null | undefined = undefined;
+      let userId: string | null | undefined = undefined;
       const isAdmin = req.user.role === 'admin';
 
       if (isAdmin) {
         if (admin === 'true') {
-          // frontend admin filter → admin-only expenses
           userId = null;
         } else if (userIdParam && userIdParam !== 'all') {
-          userId = Number(userIdParam);
+          userId = userIdParam;
         }
-        // else: show all expenses
       } else {
-        // staff can only see their own expenses
         userId = req.user.id;
       }
 
@@ -187,8 +201,7 @@ export async function registerRoutes(
   app.post(api.expenses.create.path, requireAuth, async (req, res) => {
     try {
       if (!req.user) return res.status(401).json({ message: "Unauthorized" });
-      const input = api.expenses.create.input.parse(req.body);
-      // If staff user, automatically set userId to their ID
+      const input = insertExpenseSchema.parse(req.body);
       const expenseData = req.user.role === 'admin'
         ? input
         : { ...input, userId: req.user.id };
@@ -203,11 +216,10 @@ export async function registerRoutes(
     }
   });
 
-  app.put(api.expenses.update.path, requireAuth, async (req, res) => {
-    if (!req.user || req.user.role !== 'admin') return res.sendStatus(403);
+  app.put(api.expenses.update.path, requireAdmin, async (req, res) => {
     try {
-      const input = api.expenses.update.input.parse(req.body);
-      const expense = await storage.updateExpense(Number(req.params.id), input);
+      const input = insertExpenseSchema.partial().parse(req.body);
+      const expense = await storage.updateExpense(req.params.id, input);
       res.json(expense);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -218,19 +230,126 @@ export async function registerRoutes(
     }
   });
 
-  app.delete(api.expenses.delete.path, requireAuth, async (req, res) => {
-    if (!req.user || req.user.role !== 'admin') return res.sendStatus(403);
+  app.delete(api.expenses.delete.path, requireAdmin, async (req, res) => {
     try {
-      await storage.deleteExpense(Number(req.params.id));
+      await storage.deleteExpense(req.params.id);
       res.sendStatus(204);
     } catch (err) {
       res.status(400).json({ message: "Delete failed" });
     }
   });
 
-  // Users
-  app.get(api.users.list.path, requireAuth, async (req, res) => {
-    if (!req.user || req.user.role !== 'admin') return res.sendStatus(403);
+  // ==================== CLIENT MANAGEMENT (ADMIN ONLY) ====================
+  app.get(api.clients.list.path, requireAdmin, async (_req, res) => {
+    try {
+      const clients = await storage.getClients();
+      res.json(clients);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message || "Failed to fetch clients" });
+    }
+  });
+
+  app.get(api.clients.get.path, requireAdmin, async (req, res) => {
+    try {
+      const client = await storage.getClient(req.params.id);
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      res.json(client);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message || "Failed to fetch client" });
+    }
+  });
+
+  app.post(api.clients.create.path, requireAdmin, async (req, res) => {
+    try {
+      const input = insertClientSchema.parse(req.body);
+      const client = await storage.createClient(input);
+      res.status(201).json(client);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message });
+      } else {
+        res.status(500).json({ message: "Failed to create client" });
+      }
+    }
+  });
+
+  app.put(api.clients.update.path, requireAdmin, async (req, res) => {
+    try {
+      const input = insertClientSchema.partial().parse(req.body);
+      const client = await storage.updateClient(req.params.id, input);
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      res.json(client);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message });
+      } else {
+        res.status(400).json({ message: "Update failed" });
+      }
+    }
+  });
+
+  app.delete(api.clients.delete.path, requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteClient(req.params.id);
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(400).json({ message: "Delete failed" });
+    }
+  });
+
+  // Client Details & Ledger with Date Filter
+  app.get(api.clients.transactions.path, requireAdmin, async (req, res) => {
+    try {
+      const filter = (req.query.filter as string) || "all";
+      const from = req.query.from as string | undefined;
+      const to = req.query.to as string | undefined;
+
+      const summary = await storage.getClientTransactions(req.params.id, filter, from, to);
+      res.json(summary);
+    } catch (err: any) {
+      res.status(404).json({ message: err.message || "Failed to fetch client transactions" });
+    }
+  });
+
+  // Record Payment for Client
+  app.post(api.clients.createPayment.path, requireAdmin, async (req, res) => {
+    try {
+      const paymentSchema = insertClientPaymentSchema.omit({ clientId: true });
+      const input = paymentSchema.parse(req.body);
+
+      const payment = await storage.createClientPayment({
+        ...input,
+        clientId: req.params.id,
+        userId: req.user?.id,
+        date: input.date ? new Date(input.date) : new Date(),
+      });
+
+      res.status(201).json(payment);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message });
+      } else {
+        res.status(500).json({ message: "Failed to record payment" });
+      }
+    }
+  });
+
+  // Delete Payment record
+  app.delete(api.clients.deletePayment.path, requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteClientPayment(req.params.paymentId);
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(400).json({ message: "Failed to delete payment" });
+    }
+  });
+
+  // ==================== USERS (ADMIN ONLY) ====================
+  app.get(api.users.list.path, requireAdmin, async (_req, res) => {
     try {
       const users = await storage.getUsers();
       res.json(users);
@@ -239,18 +358,10 @@ export async function registerRoutes(
     }
   });
 
-  app.post(api.users.create.path, requireAuth, async (req, res) => {
-    if (!req.user || req.user.role !== 'admin') return res.sendStatus(403);
+  app.post(api.users.create.path, requireAdmin, async (req, res) => {
     try {
-      const input = api.users.create.input.parse(req.body);
-      // Hash password using crypto module
-      const { scrypt, randomBytes } = await import("crypto");
-      const { promisify } = await import("util");
-      const scryptAsync = promisify(scrypt);
-      const salt = randomBytes(16).toString("hex");
-      const buf = (await scryptAsync(input.password, salt, 64)) as Buffer;
-      const hashedPassword = `${buf.toString("hex")}.${salt}`;
-
+      const input = insertUserSchema.parse(req.body);
+      const hashedPassword = await hashPassword(input.password);
       const user = await storage.createUser({ ...input, password: hashedPassword });
       res.status(201).json(user);
     } catch (err) {
@@ -262,31 +373,20 @@ export async function registerRoutes(
     }
   });
 
-  app.put(api.users.update.path, requireAuth, async (req, res) => {
-    if (!req.user || req.user.role !== 'admin') return res.sendStatus(403);
+  app.put(api.users.update.path, requireAdmin, async (req, res) => {
     try {
-      const input = api.users.update.input.parse(req.body);
+      const input = insertUserSchema.partial().parse(req.body);
       const updateData: any = { ...input };
 
-      // Only hash password if it's provided
       if (input.password && input.password.trim() !== '') {
-        const { scrypt, randomBytes } = await import("crypto");
-        const { promisify } = await import("util");
-        const scryptAsync = promisify(scrypt);
-        const salt = randomBytes(16).toString("hex");
-        const buf = (await scryptAsync(input.password, salt, 64)) as Buffer;
-        updateData.password = `${buf.toString("hex")}.${salt}`;
+        updateData.password = await hashPassword(input.password);
       } else {
         delete updateData.password;
       }
 
-      const user = await storage.updateUser(Number(req.params.id), updateData);
-      (req.session as any).user = {
-        id: user.id,
-        username: user.username,
-      };
+      const user = await storage.updateUser(req.params.id, updateData);
+      if (!user) return res.status(404).json({ message: 'User not found' });
       res.json(user);
-
     } catch (err) {
       if (err instanceof z.ZodError) {
         res.status(400).json({ message: err.errors[0].message });
@@ -296,17 +396,16 @@ export async function registerRoutes(
     }
   });
 
-  app.delete(api.users.delete.path, requireAuth, async (req, res) => {
-    if (!req.user || req.user.role !== 'admin') return res.sendStatus(403);
+  app.delete(api.users.delete.path, requireAdmin, async (req, res) => {
     try {
-      await storage.deleteUser(Number(req.params.id));
+      await storage.deleteUser(req.params.id);
       res.sendStatus(204);
     } catch (err) {
       res.status(400).json({ message: "Delete failed" });
     }
   });
 
-  // Stats
+  // ==================== STATS ====================
   app.get(api.stats.get.path, requireAuth, async (req, res) => {
     try {
       const filter = req.query.filter as string | undefined;
@@ -318,7 +417,7 @@ export async function registerRoutes(
         dailySales: stats.sales,
         dailyPurchases: stats.purchases,
         dailyExpenses: stats.expenses,
-        profit: stats.sales - (stats.purchases + stats.expenses), // Rough estimate
+        profit: stats.sales - (stats.purchases + stats.expenses),
         weeklySales: stats.weeklySales,
       });
     } catch (err) {

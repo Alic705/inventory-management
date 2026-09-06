@@ -3,7 +3,7 @@ import { api } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
-type ExpenseFilter = "all" | "admin" | { userId: number };
+type ExpenseFilter = "all" | "admin" | { userId: string };
 
 export function useExpenses(filter: ExpenseFilter = "all") {
   const queryClient = useQueryClient();
@@ -15,7 +15,7 @@ export function useExpenses(filter: ExpenseFilter = "all") {
     if (filter === "admin") {
       params.append("admin", "true");
     } else if (typeof filter === "object" && filter.userId) {
-      params.append("userId", String(filter.userId));
+      params.append("userId", filter.userId);
     }
 
     const qs = params.toString();
@@ -68,9 +68,9 @@ export function useExpenses(filter: ExpenseFilter = "all") {
     mutationFn: async ({
       id,
       ...data
-    }: { id: number } & z.infer<typeof api.expenses.update.input>) => {
+    }: { id: string } & z.infer<typeof api.expenses.update.input>) => {
       const res = await fetch(
-        api.expenses.update.path.replace(":id", String(id)),
+        api.expenses.update.path.replace(":id", id),
         {
           method: "PUT",
           credentials: "include",
@@ -95,9 +95,9 @@ export function useExpenses(filter: ExpenseFilter = "all") {
   });
 
   const deleteExpense = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const res = await fetch(
-        api.expenses.delete.path.replace(":id", String(id)),
+        api.expenses.delete.path.replace(":id", id),
         {
           method: "DELETE",
           credentials: "include",

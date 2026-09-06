@@ -95,15 +95,10 @@ export default function Products() {
             form.reset();
           }
         }}>
-          <DialogTrigger asChild>
-            <Button className="rounded-xl shadow-lg shadow-primary/25 w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" /> {t.add}
-            </Button>
-          </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] rounded-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-lg sm:text-xl">{editingProduct ? t.editProduct : t.addNewProduct}</DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground">{editingProduct ? t.leaveBlankToKeep : t.manageInventory}</DialogDescription>
+              <DialogTitle className="text-lg sm:text-xl">{t.editProduct}</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">{t.leaveBlankToKeep || "Update product details"}</DialogDescription>
             </DialogHeader>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

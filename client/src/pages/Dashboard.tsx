@@ -1,12 +1,26 @@
 import { useSales } from "@/hooks/use-sales";
 import type { DateFilter } from "@/hooks/use-sales";
+import { useClients } from "@/hooks/use-clients";
 import { useI18n } from "@/lib/i18n";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, CalendarIcon } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  ShoppingBag,
+  CalendarIcon,
+  Users,
+  ArrowDownLeft,
+  ArrowUpRight,
+  ArrowRight,
+  BookOpen,
+  FileText,
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -24,8 +38,19 @@ import type { DateRange } from "react-day-picker";
 
 export default function Dashboard() {
   const { stats, isLoading, dateFilter, setDateFilter, customDateRange, setCustomDateRange } = useSales();
-  const { t } = useI18n();
+  const { clients } = useClients();
+  const { t, language } = useI18n();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+
+  const totalReceivable = clients.reduce((sum, c) => {
+    const bal = c.netBalance || 0;
+    return bal > 0 ? sum + bal : sum;
+  }, 0);
+
+  const totalPayable = clients.reduce((sum, c) => {
+    const bal = c.netBalance || 0;
+    return bal < 0 ? sum + Math.abs(bal) : sum;
+  }, 0);
 
   const chartData = stats?.weeklySales.map(s => ({
     name: s.date,
@@ -33,12 +58,14 @@ export default function Dashboard() {
   })) ?? [];
 
   if (isLoading) {
-    return <div className="p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 rounded-2xl" />)}
+    return (
+      <div className="p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 rounded-2xl" />)}
+        </div>
+        <Skeleton className="h-[250px] sm:h-[300px] md:h-96 rounded-2xl" />
       </div>
-      <Skeleton className="h-[250px] sm:h-[300px] md:h-96 rounded-2xl" />
-    </div>;
+    );
   }
 
   const statCards = [
@@ -79,9 +106,9 @@ export default function Dashboard() {
           <h2 className="text-2xl sm:text-3xl font-display font-bold">{t.dashboard}</h2>
           <p className="text-sm sm:text-base text-muted-foreground">{t.welcome}</p>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center">
           <Select value={dateFilter} onValueChange={(val) => setDateFilter(val as any)}>
-            <SelectTrigger className="w-[150px] rounded-xl">
+            <SelectTrigger className="w-[150px] rounded-xl h-10">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -99,7 +126,7 @@ export default function Dashboard() {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-[280px] justify-start text-left font-normal rounded-xl",
+                    "w-[240px] justify-start text-left font-normal rounded-xl h-10 text-xs sm:text-sm",
                     !customDateRange && "text-muted-foreground"
                   )}
                 >
@@ -135,9 +162,16 @@ export default function Dashboard() {
               </PopoverContent>
             </Popover>
           )}
+          <Link href="/reports">
+            <Button variant="outline" className="rounded-xl gap-1.5 h-10 text-xs sm:text-sm font-medium">
+              <FileText className="h-4 w-4 text-primary" />
+              {t.reports}
+            </Button>
+          </Link>
         </div>
       </div>
 
+      {/* 4 Main Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {statCards.map((stat, i) => (
           <Card key={i} className="rounded-2xl border-border/50 shadow-sm hover:shadow-md transition-shadow">
@@ -156,6 +190,58 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* 2 Khata / Ledger Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+        <Card className="rounded-2xl border-border/50 shadow-sm hover:shadow-md transition-all bg-emerald-50/20 dark:bg-emerald-950/10 border-emerald-500/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="space-y-0.5">
+              <CardTitle className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                <ArrowDownLeft className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                {t.receivable} (Customer Khata)
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                {language === 'ur' ? 'گاہکوں سے کل وصول طلب بقایا' : 'Total pending collection from customers'}
+              </p>
+            </div>
+            <Link href="/clients">
+              <Button size="sm" variant="ghost" className="rounded-xl text-emerald-600 gap-1 text-xs hover:bg-emerald-100 dark:hover:bg-emerald-950/40">
+                View Parties <ArrowRight className="h-3 w-3" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
+              Rs. {totalReceivable.toLocaleString()}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-border/50 shadow-sm hover:shadow-md transition-all bg-rose-50/20 dark:bg-rose-950/10 border-rose-500/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="space-y-0.5">
+              <CardTitle className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                <ArrowUpRight className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                {t.payable} (Supplier Khata)
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                {language === 'ur' ? 'سپلائرز کو کل واجب الادا بقایا' : 'Total pending payment to suppliers'}
+              </p>
+            </div>
+            <Link href="/clients">
+              <Button size="sm" variant="ghost" className="rounded-xl text-rose-600 gap-1 text-xs hover:bg-rose-100 dark:hover:bg-rose-950/40">
+                View Parties <ArrowRight className="h-3 w-3" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-mono text-rose-600 dark:text-rose-400">
+              Rs. {totalPayable.toLocaleString()}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Sales Overview Chart */}
       <Card className="rounded-2xl border-border/50 shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg sm:text-xl">

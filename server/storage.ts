@@ -1,313 +1,567 @@
-import { db } from "./db";
 import {
-  users, products, purchases, sales, saleItems, expenses,
-  type User, type Product, type Purchase,
-  type Sale, type SaleItem, type Expense
+  User, Product, Client, ClientPayment, Purchase, Sale, SaleItem, Expense
+} from "./models";
+import {
+  type User as UserType,
+  type Product as ProductType,
+  type Client as ClientType,
+  type ClientPayment as ClientPaymentType,
+  type Purchase as PurchaseType,
+  type Sale as SaleType,
+  type SaleItem as SaleItemType,
+  type Expense as ExpenseType,
+  type ClientSummary
 } from "@shared/schema";
-import { eq, sql, desc, and, gte, lte } from "drizzle-orm";
+import mongoose from "mongoose";
 
 export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: typeof users.$inferInsert): Promise<User>;
-  getUsers(): Promise<User[]>;
-  updateUser(id: number, updates: Partial<typeof users.$inferInsert>): Promise<User>;
-  deleteUser(id: number): Promise<void>;
-  getProducts(): Promise<Product[]>;
-  getProduct(id: number): Promise<Product | undefined>;
-  createProduct(product: typeof products.$inferInsert): Promise<Product>;
-  updateProduct(id: number, product: Partial<typeof products.$inferInsert>): Promise<Product>;
-  deleteProduct(id: number): Promise<void>;
-  createPurchase(purchase: typeof purchases.$inferInsert): Promise<Purchase>;
-  updatePurchase(id: number, purchase: Partial<typeof purchases.$inferInsert>): Promise<Purchase>;
-  deletePurchase(id: number): Promise<void>;
-  getPurchases(): Promise<(Purchase & { product: Product })[]>;
-  createSale(userId: number, items: { productId: number; quantity: number; rate: number }[]): Promise<Sale>;
-  getSales(): Promise<(Sale & { user: User })[]>;
-  createExpense(expense: typeof expenses.$inferInsert): Promise<Expense>;
-  updateExpense(id: number, expense: Partial<typeof expenses.$inferInsert>): Promise<Expense>;
-  deleteExpense(id: number): Promise<void>;
-  getExpenses(userId?: number | null, isAdmin?: boolean): Promise<(Expense & { user?: User })[]>;
-  getDailyStats(filter?: string, fromDate?: string, toDate?: string): Promise<{ sales: number; purchases: number; expenses: number; weeklySales: { date: string, amount: number }[] }>;
+  // User
+  getUser(id: string): Promise<UserType | null>;
+  getUserByUsername(username: string): Promise<UserType | null>;
+  createUser(user: any): Promise<UserType>;
+  getUsers(): Promise<UserType[]>;
+  updateUser(id: string, updates: any): Promise<UserType | null>;
+  deleteUser(id: string): Promise<void>;
+
+  // Product
+  getProducts(): Promise<ProductType[]>;
+  getProduct(id: string): Promise<ProductType | null>;
+  createProduct(product: any): Promise<ProductType>;
+  updateProduct(id: string, updates: any): Promise<ProductType | null>;
+  deleteProduct(id: string): Promise<void>;
+
+  // Client
+  getClients(): Promise<ClientType[]>;
+  getClient(id: string): Promise<ClientType | null>;
+  createClient(client: any): Promise<ClientType>;
+  updateClient(id: string, updates: any): Promise<ClientType | null>;
+  deleteClient(id: string): Promise<void>;
+  getClientTransactions(clientId: string, filter?: string, fromDate?: string, toDate?: string): Promise<ClientSummary>;
+
+  // Client Payment
+  createClientPayment(payment: any): Promise<ClientPaymentType>;
+  deleteClientPayment(id: string): Promise<void>;
+
+  // Purchase
+  createPurchase(purchase: any): Promise<PurchaseType>;
+  updatePurchase(id: string, updates: any): Promise<PurchaseType | null>;
+  deletePurchase(id: string): Promise<void>;
+  getPurchases(): Promise<any[]>;
+
+  // Sale
+  createSale(userId: string, items: any[], clientId?: string | null): Promise<SaleType>;
+  getSales(): Promise<any[]>;
+
+  // Expense
+  createExpense(expense: any): Promise<ExpenseType>;
+  updateExpense(id: string, updates: any): Promise<ExpenseType | null>;
+  deleteExpense(id: string): Promise<void>;
+  getExpenses(userId?: string | null, isAdmin?: boolean): Promise<any[]>;
+
+  // Stats
+  getDailyStats(filter?: string, fromDate?: string, toDate?: string): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+  // === USER METHODS ===
+  async getUser(id: string): Promise<UserType | null> {
+    return await User.findById(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+  async getUserByUsername(username: string): Promise<UserType | null> {
+    return await User.findOne({ username });
   }
 
-  async createUser(user: typeof users.$inferInsert): Promise<User> {
-    const [newUser] = await db.insert(users).values(user).returning();
-    return newUser;
+  async createUser(user: any): Promise<UserType> {
+    return await User.create(user);
   }
 
-  async getUsers(): Promise<User[]> {
-    return await db.select().from(users);
+  async getUsers(): Promise<UserType[]> {
+    return await User.find().sort({ createdAt: -1 });
   }
 
-  async updateUser(id: number, updates: Partial<typeof users.$inferInsert>): Promise<User> {
-    const [updated] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
-    return updated;
+  async updateUser(id: string, updates: any): Promise<UserType | null> {
+    return await User.findByIdAndUpdate(id, updates, { returnDocument: 'after' });
   }
 
-  async deleteUser(id: number): Promise<void> {
-    await db.delete(users).where(eq(users.id, id));
+  async deleteUser(id: string): Promise<void> {
+    await User.findByIdAndDelete(id);
   }
 
-  async getProducts(): Promise<Product[]> {
-    return await db.select().from(products).orderBy(products.name);
+  // === PRODUCT METHODS ===
+  async getProducts(): Promise<ProductType[]> {
+    return await Product.find().sort({ name: 1 });
   }
 
-  async getProduct(id: number): Promise<Product | undefined> {
-    const [product] = await db.select().from(products).where(eq(products.id, id));
-    return product;
+  async getProduct(id: string): Promise<ProductType | null> {
+    return await Product.findById(id);
   }
 
-  async createProduct(product: typeof products.$inferInsert): Promise<Product> {
-    const [newProduct] = await db.insert(products).values(product).returning();
-    return newProduct;
+  async createProduct(product: any): Promise<ProductType> {
+    return await Product.create(product);
   }
 
-  async updateProduct(id: number, updates: Partial<typeof products.$inferInsert>): Promise<Product> {
-    const [updated] = await db.update(products).set(updates).where(eq(products.id, id)).returning();
-    return updated;
+  async updateProduct(id: string, updates: any): Promise<ProductType | null> {
+    return await Product.findByIdAndUpdate(id, updates, { returnDocument: 'after' });
   }
 
-  async deleteProduct(id: number): Promise<void> {
-    await db.delete(products).where(eq(products.id, id));
+  async deleteProduct(id: string): Promise<void> {
+    await Product.findByIdAndDelete(id);
   }
 
-  async createPurchase(purchase: typeof purchases.$inferInsert): Promise<Purchase> {
-    return await db.transaction(async (tx) => {
-      const [newPurchase] = await tx.insert(purchases).values(purchase).returning();
-      await tx.update(products)
-        .set({ stock: sql`${products.stock} + ${purchase.quantity}` })
-        .where(eq(products.id, purchase.productId));
-      return newPurchase;
-    });
-  }
+  // === CLIENT METHODS ===
+  async getClients(): Promise<ClientType[]> {
+    const clients = await Client.find().sort({ name: 1 });
 
-  async updatePurchase(id: number, updates: Partial<typeof purchases.$inferInsert>): Promise<Purchase> {
-    const [updated] = await db.update(purchases).set(updates).where(eq(purchases.id, id)).returning();
-    return updated;
-  }
+    // Calculate aggregated balances for all clients
+    const clientList: ClientType[] = [];
 
-  async deletePurchase(id: number): Promise<void> {
-    await db.delete(purchases).where(eq(purchases.id, id));
-  }
+    for (const c of clients) {
+      const clientId = c._id;
+      const salesSum = await Sale.aggregate([
+        { $match: { clientId } },
+        { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+      ]);
+      const purchasesSum = await Purchase.aggregate([
+        { $match: { clientId } },
+        { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+      ]);
+      const paymentsIn = await ClientPayment.aggregate([
+        { $match: { clientId, type: "in" } },
+        { $group: { _id: null, total: { $sum: "$amount" } } }
+      ]);
+      const paymentsOut = await ClientPayment.aggregate([
+        { $match: { clientId, type: "out" } },
+        { $group: { _id: null, total: { $sum: "$amount" } } }
+      ]);
 
-  async getPurchases(): Promise<(Purchase & { product: Product })[]> {
-    const rows = await db.select().from(purchases)
-      .leftJoin(products, eq(purchases.productId, products.id))
-      .orderBy(desc(purchases.date));
-    return rows.map(r => ({ ...r.purchases, product: r.products! }));
-  }
+      const totalSales = salesSum[0]?.total || 0;
+      const totalPurchases = purchasesSum[0]?.total || 0;
+      const totalReceived = paymentsIn[0]?.total || 0;
+      const totalPaid = paymentsOut[0]?.total || 0;
+      const openingBalance = c.openingBalance || 0;
 
-  async createSale(userId: number, items: { productId: number; quantity: number; rate: number }[]): Promise<Sale> {
-    return await db.transaction(async (tx) => {
-      let totalAmount = 0;
-      items.forEach(item => totalAmount += item.quantity * item.rate);
-      const [newSale] = await tx.insert(sales).values({ userId, totalAmount: Math.round(totalAmount) }).returning();
-      for (const item of items) {
-        await tx.insert(saleItems).values({
-          saleId: newSale.id,
-          productId: item.productId,
-          quantity: item.quantity,
-          rate: item.rate,
-          amount: Math.round(item.quantity * item.rate),
-        });
-        await tx.update(products)
-          .set({ stock: sql`${products.stock} - ${item.quantity}` })
-          .where(eq(products.id, item.productId));
-      }
-      return newSale;
-    });
-  }
+      // Net Balance: (Opening + Sales + Payments Out) - (Purchases + Payments In)
+      // Positive = Client owes us (Receivable)
+      // Negative = We owe client (Payable)
+      const netBalance = (openingBalance + totalSales + totalPaid) - (totalPurchases + totalReceived);
 
-  async getSales(): Promise<(Sale & { user: User })[]> {
-    const rows = await db.select().from(sales)
-      .leftJoin(users, eq(sales.userId, users.id))
-      .orderBy(desc(sales.date));
-    return rows.map(r => ({ ...r.sales, user: r.users! }));
-  }
+      const clientObj = c.toJSON();
+      clientObj.totalSales = totalSales;
+      clientObj.totalPurchases = totalPurchases;
+      clientObj.totalReceived = totalReceived;
+      clientObj.totalPaid = totalPaid;
+      clientObj.netBalance = netBalance;
 
-  async createExpense(expense: typeof expenses.$inferInsert): Promise<Expense> {
-    const [newExpense] = await db.insert(expenses).values(expense).returning();
-    return newExpense;
-  }
-
-  async updateExpense(id: number, updates: Partial<typeof expenses.$inferInsert>): Promise<Expense> {
-    const [updated] = await db.update(expenses).set(updates).where(eq(expenses.id, id)).returning();
-    return updated;
-  }
-
-  async deleteExpense(id: number): Promise<void> {
-    await db.delete(expenses).where(eq(expenses.id, id));
-  }
-
-  async getExpenses(userId?: number | null, isAdmin?: boolean): Promise<(Expense & { user?: User })[]> {
-    let rows;
-
-    if (!isAdmin && userId) {
-      // Staff can only see their own expenses
-      rows = await db.select().from(expenses)
-        .where(eq(expenses.userId, userId))
-        .orderBy(desc(expenses.date));
-    } else if (isAdmin && userId !== undefined && userId !== null) {
-      // Admin filtering by specific user
-      rows = await db.select().from(expenses)
-        .where(eq(expenses.userId, userId))
-        .orderBy(desc(expenses.date));
-    } else if (isAdmin && userId === null) {
-      // Admin viewing admin-only expenses (userId is null)
-      rows = await db.select().from(expenses)
-        .where(sql`${expenses.userId} IS NULL`)
-        .orderBy(desc(expenses.date));
-    } else {
-      // Admin viewing all expenses
-      rows = await db.select().from(expenses)
-        .orderBy(desc(expenses.date));
+      clientList.push(clientObj);
     }
 
-    // Join with users to get user info
-    const expensesWithUsers = await Promise.all(rows.map(async (exp) => {
-      if (exp.userId) {
-        const user = await this.getUser(exp.userId);
-        return { ...exp, user };
-      }
-      return { ...exp };
-    }));
-
-    return expensesWithUsers;
+    return clientList;
   }
 
-  async getDailyStats(filter?: string, fromDate?: string, toDate?: string): Promise<{ sales: number; purchases: number; expenses: number; weeklySales: { date: string, amount: number }[] }> {
-    let salesWhere = sql`1=1`;
-    let purchasesWhere = sql`1=1`;
-    let expensesWhere = sql`1=1`;
+  async getClient(id: string): Promise<ClientType | null> {
+    return await Client.findById(id);
+  }
 
-    // Build date filter conditions
-    if (filter === "daily") {
-      salesWhere = sql`${sales.date}::date = CURRENT_DATE`;
-      purchasesWhere = sql`${purchases.date}::date = CURRENT_DATE`;
-      expensesWhere = sql`${expenses.date}::date = CURRENT_DATE`;
+  async createClient(client: any): Promise<ClientType> {
+    return await Client.create(client);
+  }
+
+  async updateClient(id: string, updates: any): Promise<ClientType | null> {
+    return await Client.findByIdAndUpdate(id, updates, { returnDocument: 'after' });
+  }
+
+  async deleteClient(id: string): Promise<void> {
+    await Client.findByIdAndDelete(id);
+    // Also clean up client payments
+    await ClientPayment.deleteMany({ clientId: id });
+  }
+
+  async getClientTransactions(
+    clientId: string,
+    filter = "all",
+    fromDate?: string,
+    toDate?: string
+  ): Promise<ClientSummary> {
+    const client = await Client.findById(clientId);
+    if (!client) {
+      throw new Error("Client not found");
+    }
+
+    const clientObjectId = new mongoose.Types.ObjectId(clientId);
+
+    // Build Date Filter Query
+    let dateQuery: any = {};
+    if (filter === "today") {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const end = new Date();
+      end.setHours(23, 59, 59, 999);
+      dateQuery = { date: { $gte: start, $lte: end } };
     } else if (filter === "weekly") {
-      salesWhere = sql`${sales.date}::date >= CURRENT_DATE - INTERVAL '7 days'`;
-      purchasesWhere = sql`${purchases.date}::date >= CURRENT_DATE - INTERVAL '7 days'`;
-      expensesWhere = sql`${expenses.date}::date >= CURRENT_DATE - INTERVAL '7 days'`;
+      const start = new Date();
+      start.setDate(start.getDate() - 7);
+      start.setHours(0, 0, 0, 0);
+      dateQuery = { date: { $gte: start } };
     } else if (filter === "monthly") {
-      salesWhere = sql`${sales.date}::date >= DATE_TRUNC('month', CURRENT_DATE)`;
-      purchasesWhere = sql`${purchases.date}::date >= DATE_TRUNC('month', CURRENT_DATE)`;
-      expensesWhere = sql`${expenses.date}::date >= DATE_TRUNC('month', CURRENT_DATE)`;
+      const start = new Date();
+      start.setMonth(start.getMonth() - 1);
+      start.setHours(0, 0, 0, 0);
+      dateQuery = { date: { $gte: start } };
     } else if (filter === "yearly") {
-      salesWhere = sql`${sales.date}::date >= DATE_TRUNC('year', CURRENT_DATE)`;
-      purchasesWhere = sql`${purchases.date}::date >= DATE_TRUNC('year', CURRENT_DATE)`;
-      expensesWhere = sql`${expenses.date}::date >= DATE_TRUNC('year', CURRENT_DATE)`;
+      const start = new Date();
+      start.setFullYear(start.getFullYear() - 1);
+      start.setHours(0, 0, 0, 0);
+      dateQuery = { date: { $gte: start } };
     } else if (filter === "custom" && fromDate && toDate) {
-      salesWhere = sql`${sales.date}::date >= ${sql.raw(`'${fromDate}'`)}::date AND ${sales.date}::date <= ${sql.raw(`'${toDate}'`)}::date`;
-      purchasesWhere = sql`${purchases.date}::date >= ${sql.raw(`'${fromDate}'`)}::date AND ${purchases.date}::date <= ${sql.raw(`'${toDate}'`)}::date`;
-      expensesWhere = sql`${expenses.date}::date >= ${sql.raw(`'${fromDate}'`)}::date AND ${expenses.date}::date <= ${sql.raw(`'${toDate}'`)}::date`;
+      const start = new Date(fromDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(toDate);
+      end.setHours(23, 59, 59, 999);
+      dateQuery = { date: { $gte: start, $lte: end } };
     }
-    // "all" or undefined means no filter - show all data
 
-    const [sResult] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
-      .from(sales).where(salesWhere);
-    const [pResult] = await db.select({ total: sql<number>`COALESCE(SUM(${purchases.totalAmount}), 0)` })
-      .from(purchases).where(purchasesWhere);
-    const [eResult] = await db.select({ total: sql<number>`COALESCE(SUM(${expenses.amount}), 0)` })
-      .from(expenses).where(expensesWhere);
+    // Fetch Sales linked to this Client
+    const sales = await Sale.find({ clientId: clientObjectId, ...dateQuery })
+      .populate("userId", "username")
+      .sort({ date: -1 });
 
-    // Generate chart data based on filter
-    let weeklySales: { date: string, amount: number }[] = [];
+    // For each sale, get its items
+    const salesWithItems = await Promise.all(
+      sales.map(async (sale) => {
+        const items = await SaleItem.find({ saleId: sale._id }).populate("productId");
+        const saleObj = sale.toJSON();
+        saleObj.items = items;
+        return saleObj;
+      })
+    );
 
-    if (filter === "daily") {
-      // Show hourly data for today
-      for (let i = 0; i < 24; i++) {
-        const [res] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
-          .from(sales).where(sql`EXTRACT(HOUR FROM ${sales.date}) = ${i} AND ${sales.date}::date = CURRENT_DATE`);
-        weeklySales.push({ date: `${i}:00`, amount: Number(res?.total || 0) });
-      }
-    } else if (filter === "weekly") {
-      // Show last 7 days
-      for (let i = 6; i >= 0; i--) {
-        const [res] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
-          .from(sales).where(sql`${sales.date}::date = CURRENT_DATE - INTERVAL '${sql.raw(String(i))} days'`);
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        weeklySales.push({ date: date.toLocaleDateString('en-US', { weekday: 'short' }), amount: Number(res?.total || 0) });
-      }
-    } else if (filter === "monthly") {
-      // Show last 30 days
-      for (let i = 29; i >= 0; i--) {
-        const [res] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
-          .from(sales).where(sql`${sales.date}::date = CURRENT_DATE - INTERVAL '${sql.raw(String(i))} days'`);
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        weeklySales.push({ date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), amount: Number(res?.total || 0) });
-      }
-    } else if (filter === "yearly") {
-      // Show last 12 months
-      for (let i = 11; i >= 0; i--) {
-        const [res] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
-          .from(sales).where(sql`${sales.date}::date >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '${sql.raw(String(i))} months') AND ${sales.date}::date < DATE_TRUNC('month', CURRENT_DATE - INTERVAL '${sql.raw(String(i - 1))} months')`);
-        const date = new Date();
-        date.setMonth(date.getMonth() - i);
-        weeklySales.push({ date: date.toLocaleDateString('en-US', { month: 'short' }), amount: Number(res?.total || 0) });
-      }
-    } else if (filter === "custom" && fromDate && toDate) {
-      // Show daily data for custom range (max 90 days, otherwise monthly)
-      const from = new Date(fromDate);
-      const to = new Date(toDate);
-      const daysDiff = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+    // Fetch Purchases linked to this Client (or matching supplier name)
+    const purchaseQuery: any = {
+      $or: [
+        { clientId: clientObjectId },
+        { supplier: new RegExp(`^${client.name}$`, 'i') }
+      ],
+      ...dateQuery
+    };
+    const purchases = await Purchase.find(purchaseQuery)
+      .populate("productId")
+      .sort({ date: -1 });
 
-      if (daysDiff <= 90) {
-        // Daily data
-        for (let i = 0; i <= daysDiff; i++) {
-          const currentDate = new Date(from);
-          currentDate.setDate(currentDate.getDate() + i);
-          const dateStr = currentDate.toISOString().split('T')[0];
-          const [res] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
-            .from(sales).where(sql`${sales.date}::date = ${sql.raw(`'${dateStr}'`)}::date`);
-          weeklySales.push({ date: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), amount: Number(res?.total || 0) });
-        }
-      } else {
-        // Monthly data
-        const months = [];
-        let current = new Date(from);
-        while (current <= to) {
-          months.push(new Date(current));
-          current.setMonth(current.getMonth() + 1);
-        }
-        for (const month of months) {
-          const monthStart = new Date(month.getFullYear(), month.getMonth(), 1).toISOString().split('T')[0];
-          const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0).toISOString().split('T')[0];
-          const [res] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
-            .from(sales).where(sql`${sales.date}::date >= ${sql.raw(`'${monthStart}'`)}::date AND ${sales.date}::date <= ${sql.raw(`'${monthEnd}'`)}::date`);
-          weeklySales.push({ date: month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }), amount: Number(res?.total || 0) });
-        }
-      }
-    } else {
-      // Default: show last 7 days for "all"
-      for (let i = 6; i >= 0; i--) {
-        const [res] = await db.select({ total: sql<number>`COALESCE(SUM(${sales.totalAmount}), 0)` })
-          .from(sales).where(sql`${sales.date}::date = CURRENT_DATE - INTERVAL '${sql.raw(String(i))} days'`);
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        weeklySales.push({ date: date.toLocaleDateString('en-US', { weekday: 'short' }), amount: Number(res?.total || 0) });
-      }
+    // Fetch Payments
+    const payments = await ClientPayment.find({ clientId: clientObjectId, ...dateQuery })
+      .populate("userId", "username")
+      .sort({ date: -1 });
+
+    // Calculate Financial Totals
+    const totalSales = sales.reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+    const totalPurchases = purchases.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+    const totalReceived = payments
+      .filter((p) => p.type === "in")
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalPaid = payments
+      .filter((p) => p.type === "out")
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+    const openingBalance = filter === "all" ? (client.openingBalance || 0) : 0;
+    const clearedAmount = totalReceived + totalPaid;
+    const netBalance = (openingBalance + totalSales + totalPaid) - (totalPurchases + totalReceived);
+
+    // Build Unified Chronological Ledger
+    const ledgerItems: Array<{
+      id: string;
+      date: Date | string;
+      type: "sale" | "purchase" | "payment_in" | "payment_out" | "opening_balance";
+      description: string;
+      debit: number;
+      credit: number;
+      runningBalance: number;
+      reference?: string;
+      details?: any;
+    }> = [];
+
+    if (openingBalance !== 0) {
+      ledgerItems.push({
+        id: "opening",
+        date: client.createdAt || new Date(),
+        type: "opening_balance",
+        description: "Opening Balance",
+        debit: openingBalance > 0 ? openingBalance : 0,
+        credit: openingBalance < 0 ? Math.abs(openingBalance) : 0,
+        runningBalance: openingBalance,
+        reference: "INITIAL",
+      });
     }
+
+    salesWithItems.forEach((s) => {
+      ledgerItems.push({
+        id: s.id || s._id?.toString(),
+        date: s.date,
+        type: "sale",
+        description: `Sale Invoice #${(s.id || s._id?.toString()).slice(-6).toUpperCase()}`,
+        debit: s.totalAmount, // client owes us
+        credit: 0,
+        runningBalance: 0, // computed below
+        reference: `INV-${(s.id || s._id?.toString()).slice(-6).toUpperCase()}`,
+        details: s,
+      });
+    });
+
+    purchases.forEach((p) => {
+      const prodName = (p.productId as any)?.name || "Stock Item";
+      ledgerItems.push({
+        id: p.id || p._id?.toString(),
+        date: p.date,
+        type: "purchase",
+        description: `Purchase: ${prodName} (${p.quantity} x Rs. ${p.rate})`,
+        debit: 0,
+        credit: p.totalAmount, // we owe client
+        runningBalance: 0, // computed below
+        reference: `PO-${(p.id || p._id?.toString()).slice(-6).toUpperCase()}`,
+        details: p,
+      });
+    });
+
+    payments.forEach((pm) => {
+      const isReceived = pm.type === "in";
+      ledgerItems.push({
+        id: pm.id || pm._id?.toString(),
+        date: pm.date,
+        type: isReceived ? "payment_in" : "payment_out",
+        description: isReceived
+          ? `Payment Received (${pm.paymentMethod.toUpperCase()}${pm.reference ? ` - Ref: ${pm.reference}` : ''})`
+          : `Payment Given to Supplier (${pm.paymentMethod.toUpperCase()}${pm.reference ? ` - Ref: ${pm.reference}` : ''})`,
+        debit: isReceived ? 0 : pm.amount,
+        credit: isReceived ? pm.amount : 0,
+        runningBalance: 0,
+        reference: pm.reference || `PMT-${(pm.id || pm._id?.toString()).slice(-6).toUpperCase()}`,
+        details: pm,
+      });
+    });
+
+    // Sort ascending by date to compute chronological running balance
+    ledgerItems.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    let balance = 0;
+    ledgerItems.forEach((item) => {
+      balance += (item.debit - item.credit);
+      item.runningBalance = balance;
+    });
+
+    // Sort descending by date for display
+    ledgerItems.reverse();
 
     return {
-      sales: Number(sResult?.total || 0),
-      purchases: Number(pResult?.total || 0),
-      expenses: Number(eResult?.total || 0),
-      weeklySales
+      client: client.toJSON(),
+      totalSales,
+      totalPurchases,
+      totalReceived,
+      totalPaid,
+      openingBalance,
+      clearedAmount,
+      netBalance,
+      salesCount: sales.length,
+      purchasesCount: purchases.length,
+      paymentsCount: payments.length,
+      sales: salesWithItems,
+      purchases: purchases.map((p) => p.toJSON()),
+      payments: payments.map((p) => p.toJSON()),
+      ledger: ledgerItems,
+    };
+  }
+
+  // === CLIENT PAYMENT METHODS ===
+  async createClientPayment(payment: any): Promise<ClientPaymentType> {
+    return await ClientPayment.create(payment);
+  }
+
+  async deleteClientPayment(id: string): Promise<void> {
+    await ClientPayment.findByIdAndDelete(id);
+  }
+
+  // === PURCHASE METHODS ===
+  async createPurchase(purchaseData: any): Promise<PurchaseType> {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      const cleanData = { ...purchaseData };
+      if (!cleanData.clientId || cleanData.clientId === "none" || cleanData.clientId === "") {
+        delete cleanData.clientId;
+      }
+      cleanData.quantity = Number(cleanData.quantity);
+      cleanData.rate = Number(cleanData.rate);
+      cleanData.totalAmount = cleanData.totalAmount ? Number(cleanData.totalAmount) : cleanData.quantity * cleanData.rate;
+
+      const purchase = await Purchase.create([cleanData], { session });
+      await Product.findByIdAndUpdate(
+        cleanData.productId,
+        {
+          $inc: { stock: cleanData.quantity },
+          $set: { purchaseRate: cleanData.rate }
+        },
+        { session }
+      );
+      await session.commitTransaction();
+      return purchase[0];
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+
+  async updatePurchase(id: string, updates: any): Promise<PurchaseType | null> {
+    return await Purchase.findByIdAndUpdate(id, updates, { returnDocument: 'after' });
+  }
+
+  async deletePurchase(id: string): Promise<void> {
+    const purchase = await Purchase.findById(id);
+    if (purchase) {
+      await Product.findByIdAndUpdate(purchase.productId, {
+        $inc: { stock: -purchase.quantity }
+      });
+      await Purchase.findByIdAndDelete(id);
+    }
+  }
+
+  async getPurchases(): Promise<any[]> {
+    return await Purchase.find()
+      .populate("productId")
+      .populate("clientId")
+      .sort({ date: -1 });
+  }
+
+  // === SALE METHODS ===
+  async createSale(userId: string, items: any[], clientId?: string | null): Promise<SaleType> {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      let totalAmount = 0;
+      items.forEach((item) => (totalAmount += Number(item.quantity) * Number(item.rate)));
+
+      const saleData: any = {
+        userId,
+        totalAmount: Math.round(totalAmount),
+      };
+      if (clientId && clientId !== "walk-in" && clientId !== "none" && clientId !== "") {
+        saleData.clientId = clientId;
+      }
+
+      const [newSale] = await Sale.create([saleData], { session });
+
+      for (const item of items) {
+        await SaleItem.create(
+          [
+            {
+              saleId: newSale._id,
+              productId: item.productId,
+              quantity: Number(item.quantity),
+              rate: Number(item.rate),
+              amount: Math.round(Number(item.quantity) * Number(item.rate)),
+            },
+          ],
+          { session }
+        );
+
+        await Product.findByIdAndUpdate(
+          item.productId,
+          { $inc: { stock: -Number(item.quantity) } },
+          { session }
+        );
+      }
+
+      await session.commitTransaction();
+      return newSale;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+
+  async getSales(): Promise<any[]> {
+    return await Sale.find()
+      .populate("userId")
+      .populate("clientId")
+      .sort({ date: -1 });
+  }
+
+  // === EXPENSE METHODS ===
+  async createExpense(expense: any): Promise<ExpenseType> {
+    return await Expense.create(expense);
+  }
+
+  async updateExpense(id: string, updates: any): Promise<ExpenseType | null> {
+    return await Expense.findByIdAndUpdate(id, updates, { returnDocument: 'after' });
+  }
+
+  async deleteExpense(id: string): Promise<void> {
+    await Expense.findByIdAndDelete(id);
+  }
+
+  async getExpenses(userId?: string | null, isAdmin?: boolean): Promise<any[]> {
+    let query: any = {};
+    if (!isAdmin && userId) {
+      query.userId = userId;
+    } else if (isAdmin && userId === null) {
+      query.userId = null;
+    } else if (isAdmin && userId) {
+      query.userId = userId;
+    }
+    return await Expense.find(query).populate("userId").sort({ date: -1 });
+  }
+
+  // === STATS METHODS ===
+  async getDailyStats(filter?: string, fromDate?: string, toDate?: string): Promise<any> {
+    let start = new Date();
+    start.setHours(0, 0, 0, 0);
+    let end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    if (filter === "weekly") {
+      start.setDate(start.getDate() - 7);
+    } else if (filter === "monthly") {
+      start.setMonth(start.getMonth() - 1);
+    } else if (filter === "yearly") {
+      start.setFullYear(start.getFullYear() - 1);
+    } else if (filter === "custom" && fromDate && toDate) {
+      start = new Date(fromDate);
+      end = new Date(toDate);
+    }
+
+    const matchQuery = { date: { $gte: start, $lte: end } };
+
+    const salesSum = await Sale.aggregate([
+      { $match: matchQuery },
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+    ]);
+    const purchaseSum = await Purchase.aggregate([
+      { $match: matchQuery },
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+    ]);
+    const expenseSum = await Expense.aggregate([
+      { $match: matchQuery },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+
+    const weeklySalesData = await Sale.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          amount: { $sum: "$totalAmount" },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    return {
+      sales: salesSum[0]?.total || 0,
+      purchases: purchaseSum[0]?.total || 0,
+      expenses: expenseSum[0]?.total || 0,
+      weeklySales: weeklySalesData.map((d) => ({ date: d._id, amount: d.amount })),
     };
   }
 }

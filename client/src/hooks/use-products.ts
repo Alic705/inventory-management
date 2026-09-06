@@ -41,7 +41,7 @@ export function useProducts() {
   });
 
   const updateProduct = useMutation({
-    mutationFn: async ({ id, ...data }: { id: number } & z.infer<typeof api.products.update.input>) => {
+    mutationFn: async ({ id, ...data }: { id: string } & z.infer<typeof api.products.update.input>) => {
       const url = buildUrl(api.products.update.path, { id });
       const res = await fetch(url, {
         method: "PUT",
@@ -62,7 +62,7 @@ export function useProducts() {
   });
 
   const deleteProduct = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const url = buildUrl(api.products.delete.path, { id });
       const res = await fetch(url, { method: "DELETE", credentials: 'include' });
       if (!res.ok) {

@@ -41,8 +41,8 @@ export function useUsers() {
   });
 
   const updateUser = useMutation({
-    mutationFn: async ({ id, ...data }: { id: number } & z.infer<typeof api.users.update.input>) => {
-      const res = await fetch(api.users.update.path.replace(':id', String(id)), {
+    mutationFn: async ({ id, ...data }: { id: string } & z.infer<typeof api.users.update.input>) => {
+      const res = await fetch(api.users.update.path.replace(':id', id), {
         method: "PUT",
         credentials: 'include',
         headers: { "Content-Type": "application/json" },
@@ -62,8 +62,8 @@ export function useUsers() {
   });
 
   const deleteUser = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await fetch(api.users.delete.path.replace(':id', String(id)), {
+    mutationFn: async (id: string) => {
+      const res = await fetch(api.users.delete.path.replace(':id', id), {
         method: "DELETE",
         credentials: 'include',
       });

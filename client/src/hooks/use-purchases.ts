@@ -37,14 +37,16 @@ export function usePurchases() {
       queryClient.invalidateQueries({ queryKey: [api.purchases.list.path] });
       queryClient.invalidateQueries({ queryKey: [api.products.list.path] }); // Update stock
       queryClient.invalidateQueries({ queryKey: [api.stats.get.path] });
+      queryClient.invalidateQueries({ queryKey: [api.clients.list.path] });
+      queryClient.invalidateQueries({ queryKey: ["client-transactions"] });
       toast({ title: "Success", description: "Purchase recorded" });
     },
     onError: (err) => toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
 
   const updatePurchase = useMutation({
-    mutationFn: async ({ id, ...data }: { id: number } & z.infer<typeof api.purchases.update.input>) => {
-      const res = await fetch(api.purchases.update.path.replace(':id', String(id)), {
+    mutationFn: async ({ id, ...data }: { id: string } & z.infer<typeof api.purchases.update.input>) => {
+      const res = await fetch(api.purchases.update.path.replace(':id', id), {
         method: "PUT",
         credentials: 'include',
         headers: { "Content-Type": "application/json" },
@@ -66,8 +68,8 @@ export function usePurchases() {
   });
 
   const deletePurchase = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await fetch(api.purchases.delete.path.replace(':id', String(id)), {
+    mutationFn: async (id: string) => {
+      const res = await fetch(api.purchases.delete.path.replace(':id', id), {
         method: "DELETE",
         credentials: 'include',
       });

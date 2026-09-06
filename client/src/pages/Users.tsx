@@ -20,7 +20,7 @@ export default function Users() {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [formData, setFormData] = useState<{ username: string; password: string; role: "admin" | "staff"; isActive: boolean }>({ username: "", password: "", role: "staff", isActive: true });
+  const [formData, setFormData] = useState<{ username: string; password: string; role: "admin" | "staff"; isActive: boolean; language: "en" | "ur" | "roman" }>({ username: "", password: "", role: "staff", isActive: true, language: "en" });
 
   // Only admin can access
   if (user && user.role !== 'admin') {
@@ -34,14 +34,14 @@ export default function Users() {
         onSuccess: () => {
           setOpen(false);
           setEditingUser(null);
-          setFormData({ username: "", password: "", role: "staff", isActive: true });
+          setFormData({ username: "", password: "", role: "staff", isActive: true, language: "en" });
         }
       });
     } else {
       createUser.mutate(formData, {
         onSuccess: () => {
           setOpen(false);
-          setFormData({ username: "", password: "", role: "staff", isActive: true });
+          setFormData({ username: "", password: "", role: "staff", isActive: true, language: "en" });
         }
       });
     }
@@ -53,12 +53,13 @@ export default function Users() {
       username: user.username,
       password: "",
       role: user.role,
-      isActive: user.isActive
+      isActive: user.isActive,
+      language: (user as any).language || "en",
     });
     setOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (confirm(t.confirmDelete)) {
       deleteUser.mutate(id);
     }
@@ -76,7 +77,7 @@ export default function Users() {
           setOpen(v);
           if (!v) {
             setEditingUser(null);
-            setFormData({ username: "", password: "", role: "staff", isActive: true });
+            setFormData({ username: "", password: "", role: "staff", isActive: true, language: "en" });
           }
         }}>
           <DialogTrigger asChild>

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 type Language = 'en' | 'ur' | 'roman';
 
-interface Translations {
+export interface Translations {
   dashboard: string;
   pos: string;
   products: string;
@@ -121,6 +121,51 @@ interface Translations {
   yearlyOverview: string;
   customOverview: string;
   all: string;
+  // Client Management Module
+  clients: string;
+  clientManagement: string;
+  clientList: string;
+  clientDetails: string;
+  addClient: string;
+  editClient: string;
+  clientName: string;
+  clientType: string;
+  customer: string;
+  supplierType: string;
+  bothType: string;
+  company: string;
+  phone: string;
+  email: string;
+  address: string;
+  openingBalance: string;
+  notes: string;
+  netBalance: string;
+  clearedAmount: string;
+  recordPayment: string;
+  paymentType: string;
+  paymentIn: string;
+  paymentOut: string;
+  paymentMethod: string;
+  cash: string;
+  bank: string;
+  online: string;
+  cheque: string;
+  reference: string;
+  ledger: string;
+  allTransactions: string;
+  salesHistory: string;
+  purchasesHistory: string;
+  paymentsHistory: string;
+  receivable: string;
+  payable: string;
+  settled: string;
+  debit: string;
+  credit: string;
+  runningBalance: string;
+  noClientsFound: string;
+  noTransactionsFound: string;
+  selectClient: string;
+  walkInCustomer: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -232,6 +277,51 @@ const translations: Record<Language, Translations> = {
     yearlyOverview: "Yearly Overview",
     customOverview: "Custom Range Overview",
     all: "All",
+    // Clients
+    clients: "Clients / Parties",
+    clientManagement: "Client Management",
+    clientList: "Manage your customers, suppliers & ledgers.",
+    clientDetails: "Client Details & Ledger",
+    addClient: "Add New Client",
+    editClient: "Edit Client",
+    clientName: "Client / Party Name",
+    clientType: "Party Type",
+    customer: "Customer (Buyer)",
+    supplierType: "Supplier (Vendor)",
+    bothType: "Both (Customer & Supplier)",
+    company: "Company / Shop Name",
+    phone: "Phone Number",
+    email: "Email Address",
+    address: "Address",
+    openingBalance: "Opening Balance",
+    notes: "Notes",
+    netBalance: "Pending Balance",
+    clearedAmount: "Total Cleared / Paid",
+    recordPayment: "Record Payment / Clear",
+    paymentType: "Payment Type",
+    paymentIn: "Payment Received (Cash In)",
+    paymentOut: "Payment Given (Cash Out)",
+    paymentMethod: "Payment Method",
+    cash: "Cash",
+    bank: "Bank Transfer",
+    online: "Online / Mobile Wallet",
+    cheque: "Cheque",
+    reference: "Reference / Slip #",
+    ledger: "Ledger",
+    allTransactions: "All Transactions",
+    salesHistory: "Sales Invoices",
+    purchasesHistory: "Purchases",
+    paymentsHistory: "Payment Receipts",
+    receivable: "Receivable",
+    payable: "Payable",
+    settled: "Settled",
+    debit: "Debit (+)",
+    credit: "Credit (-)",
+    runningBalance: "Running Balance",
+    noClientsFound: "No clients found",
+    noTransactionsFound: "No transactions found for this period",
+    selectClient: "Select Client (Optional)",
+    walkInCustomer: "Walk-in Customer (General)",
   },
   ur: {
     dashboard: "ڈیش بورڈ",
@@ -341,6 +431,51 @@ const translations: Record<Language, Translations> = {
     yearlyOverview: "سالانہ جائزہ",
     customOverview: "حسب ضرورت جائزہ",
     all: "سب",
+    // Clients
+    clients: "گاہک اور سپلائر",
+    clientManagement: "کلائنٹس کا انتظام",
+    clientList: "اپنے گاہکوں، سپلائرز اور کھاتوں کا انتظام کریں۔",
+    clientDetails: "کلائنٹ کی تفصیل اور کھاتہ",
+    addClient: "نیا کلائنٹ شامل کریں",
+    editClient: "کلائنٹ میں ترمیم کریں",
+    clientName: "کلائنٹ / پارٹی کا نام",
+    clientType: "پارٹی کی قسم",
+    customer: "گاہک (خریدار)",
+    supplierType: "سپلائر (فروخت کنندہ)",
+    bothType: "دونوں (گاہک اور سپلائر)",
+    company: "کمپنی / دکان کا نام",
+    phone: "فون نمبر",
+    email: "ای میل ایڈریس",
+    address: "پتہ",
+    openingBalance: "ابتدائی بقایا",
+    notes: "نوٹس",
+    netBalance: "بقایا رقم",
+    clearedAmount: "کل ادا شدہ / کلیئر رقم",
+    recordPayment: "ادائیگی درج / کلیئر کریں",
+    paymentType: "ادائیگی کی قسم",
+    paymentIn: "رقم وصول ہوئی (کیش ان)",
+    paymentOut: "رقم ادا کی (کیش آؤٹ)",
+    paymentMethod: "ادائیگی کا طریقہ",
+    cash: "نقد",
+    bank: "بینک ٹرانسفر",
+    online: "آن لائن / موبائل والیٹ",
+    cheque: "چیک",
+    reference: "حوالہ نمبر / سلپ",
+    ledger: "کھاتہ",
+    allTransactions: "تمام لین دین",
+    salesHistory: "فروخت کے انوائس",
+    purchasesHistory: "خریداری",
+    paymentsHistory: "ادائیگیوں کی رسیدیں",
+    receivable: "قابل وصول",
+    payable: "قابل ادا",
+    settled: "بے باق",
+    debit: "ڈیبٹ (+)",
+    credit: "کریڈٹ (-)",
+    runningBalance: "موجودہ بقایا",
+    noClientsFound: "کوئی کلائنٹ نہیں ملا",
+    noTransactionsFound: "اس مدت کے لیے کوئی لین دین نہیں ملا",
+    selectClient: "کلائنٹ منتخب کریں (اختیاری)",
+    walkInCustomer: "عام گاہک (جنرل)",
   },
   roman: {
     dashboard: "Dashboard",
@@ -450,6 +585,51 @@ const translations: Record<Language, Translations> = {
     yearlyOverview: "Salana Jaaiza",
     customOverview: "Hasb Zaroorat Jaaiza",
     all: "Sab",
+    // Clients
+    clients: "Clients / Parties",
+    clientManagement: "Clients Ka Intizam",
+    clientList: "Gahakon, suppliers aur khaton ka intizam karein.",
+    clientDetails: "Client Ki Tafseel aur Khata",
+    addClient: "Naya Client Daalo",
+    editClient: "Client Edit Karo",
+    clientName: "Client / Party Ka Naam",
+    clientType: "Party Ki Qism",
+    customer: "Gahak (Customer)",
+    supplierType: "Supplier (Vendor)",
+    bothType: "Dono (Gahak aur Supplier)",
+    company: "Company / Dukaan Ka Naam",
+    phone: "Phone Number",
+    email: "Email Address",
+    address: "Pata / Address",
+    openingBalance: "Pichla Baqaya (Opening)",
+    notes: "Notes",
+    netBalance: "Baqaya Raqam",
+    clearedAmount: "Kul Ada Shuda / Clear",
+    recordPayment: "Payment Darj / Clear Karo",
+    paymentType: "Payment Ki Qism",
+    paymentIn: "Raqam Vasool Hui (Cash In)",
+    paymentOut: "Raqam Ada Ki (Cash Out)",
+    paymentMethod: "Payment Ka Tareeqa",
+    cash: "Naqad (Cash)",
+    bank: "Bank Transfer",
+    online: "Online / Mobile Wallet",
+    cheque: "Cheque",
+    reference: "Reference / Slip #",
+    ledger: "Khata (Ledger)",
+    allTransactions: "Sabhi Transactions",
+    salesHistory: "Farokht Ke Bills",
+    purchasesHistory: "Khareedari",
+    paymentsHistory: "Payment Receipts",
+    receivable: "Vasool Talab",
+    payable: "Wajib ul Ada",
+    settled: "Clear / Nil",
+    debit: "Debit (+)",
+    credit: "Credit (-)",
+    runningBalance: "Baqaya (Balance)",
+    noClientsFound: "Koi client nahi mila",
+    noTransactionsFound: "Is muddat ka koi transaction nahi mila",
+    selectClient: "Client Chuno (Ikhtiyari)",
+    walkInCustomer: "Aam Gahak (General)",
   }
 };
 
@@ -463,7 +643,6 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  // Load language from localStorage or default to 'en'
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('app-language') as Language | null;

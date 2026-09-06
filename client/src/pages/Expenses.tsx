@@ -30,7 +30,7 @@ export default function Expenses() {
   const { t, language } = useI18n();
   const [open, setOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  type ExpenseFilter = "all" | "admin" | { userId: number };
+  type ExpenseFilter = "all" | "admin" | { userId: string };
 
   const [userFilter, setUserFilter] = useState<ExpenseFilter>("all");
   const isAdmin = user?.role === 'admin';
@@ -75,7 +75,7 @@ export default function Expenses() {
     setOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (confirm(t.confirmDelete)) {
       deleteExpense.mutate(id);
     }
@@ -107,7 +107,7 @@ export default function Expenses() {
               } else if (val === "admin") {
                 setUserFilter("admin");
               } else {
-                setUserFilter({ userId: Number(val) });
+                setUserFilter({ userId: val });
               }
             }}
           >

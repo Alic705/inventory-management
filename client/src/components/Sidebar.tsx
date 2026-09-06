@@ -11,7 +11,8 @@ import {
   Users,
   BarChart3,
   LogOut,
-  Leaf
+  Leaf,
+  Building2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
@@ -35,7 +36,8 @@ export function Sidebar() {
   ];
 
   if (user?.role === "admin") {
-    links.splice(5, 0, { href: "/users", label: t.users, icon: Users });
+    links.splice(5, 0, { href: "/clients", label: t.clients, icon: Building2 });
+    links.splice(6, 0, { href: "/users", label: t.users, icon: Users });
   }
 
   const handleLinkClick = () => {
