@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { I18nProvider } from "@/lib/i18n";
+import { I18nProvider, useI18n } from "@/lib/i18n";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Sidebar } from "@/components/Sidebar";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -15,15 +15,33 @@ import Products from "@/pages/Products";
 import Purchases from "@/pages/Purchases";
 import Expenses from "@/pages/Expenses";
 import Users from "@/pages/Users";
+import Clients from "@/pages/Clients";
+import ClientDetail from "@/pages/ClientDetail";
+import Reports from "@/pages/Reports";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect } from "react";
 
-function PrivateRoute({ component: Component, ...rest }: any) {
+function PrivateRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const isMobile = useIsMobile();
+  const { language } = useI18n();
 
+  // Set RTL direction for Urdu
+  useEffect(() => {
+    const htmlElement = document.documentElement;
+    if (language === 'ur') {
+      htmlElement.dir = 'rtl';
+      htmlElement.lang = 'ur';
+    } else {
+      htmlElement.dir = 'ltr';
+      htmlElement.lang = language === 'roman' ? 'en-PK' : 'en';
+    }
+  }, [language]);
+
+  // Show loading while checking authentication
   if (isLoading) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background">
@@ -32,9 +50,17 @@ function PrivateRoute({ component: Component, ...rest }: any) {
     );
   }
 
+  // Redirect to login if not authenticated
   if (!user) {
-    setLocation("/login");
-    return null;
+    // Use useEffect-like behavior to redirect
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
@@ -49,7 +75,7 @@ function PrivateRoute({ component: Component, ...rest }: any) {
             </div>
           )}
           {!isMobile && (
-            <div className="absolute top-4 right-4 z-10">
+            <div className={`absolute top-0 z-10 ${language === 'ur' ? 'left-6' : 'right-6'}`} >
               <LanguageSwitcher />
             </div>
           )}
@@ -65,7 +91,7 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
 
-      {/* Protected Routes */}
+      {/* Protected Routes - All require authentication */}
       <Route path="/">
         <PrivateRoute component={Dashboard} />
       </Route>
@@ -81,11 +107,17 @@ function Router() {
       <Route path="/expenses">
         <PrivateRoute component={Expenses} />
       </Route>
+      <Route path="/clients">
+        <PrivateRoute component={Clients} />
+      </Route>
+      <Route path="/clients/:id">
+        <PrivateRoute component={ClientDetail} />
+      </Route>
       <Route path="/users">
         <PrivateRoute component={Users} />
       </Route>
       <Route path="/reports">
-        <PrivateRoute component={Dashboard} /> {/* Reusing Dashboard for now */}
+        <PrivateRoute component={Reports} />
       </Route>
 
       <Route component={NotFound} />

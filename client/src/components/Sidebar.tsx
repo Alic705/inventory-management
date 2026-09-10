@@ -11,7 +11,8 @@ import {
   Users,
   BarChart3,
   LogOut,
-  Leaf
+  Leaf,
+  Building2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
@@ -35,7 +36,8 @@ export function Sidebar() {
   ];
 
   if (user?.role === "admin") {
-    links.splice(5, 0, { href: "/users", label: t.users, icon: Users });
+    links.splice(5, 0, { href: "/clients", label: t.clients, icon: Building2 });
+    links.splice(6, 0, { href: "/users", label: t.users, icon: Users });
   }
 
   const handleLinkClick = () => {
@@ -52,8 +54,7 @@ export function Sidebar() {
             <Leaf className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold tracking-tight text-primary"> Market </h1>
-            <p className="text-xs font-medium text-muted-foreground">Manager</p>
+            <h1 className="font-display text-xl font-bold tracking-tight text-primary">{t.marketManager}</h1>
           </div>
         </div>
 
@@ -87,7 +88,7 @@ export function Sidebar() {
             </div>
             <div className="overflow-hidden">
               <p className="truncate font-semibold text-sm">{user?.username}</p>
-              <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
+              <p className="text-xs text-muted-foreground capitalize">{user?.role === 'admin' ? t.admin : t.staff}</p>
             </div>
           </div>
         </div>
