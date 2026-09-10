@@ -18,6 +18,8 @@ import { Search, Plus, Minus, Trash2, ShoppingCart, Loader2, User, Tag } from "l
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
+import { useToast } from "@/hooks/use-toast";
+
 interface CartItem {
   product: Product;
   quantity: number;
@@ -29,10 +31,12 @@ interface CartItemWithDiscount extends CartItem {
 }
 
 export default function POS() {
+  const { toast } = useToast();
   const { products, isLoading: isLoadingProducts } = useProducts();
   const { createSale } = useSales();
   const { clients } = useClients();
   const { t, language } = useI18n();
+
   const { translateProductName, translateCategory } = useTranslate();
   const isMobile = useIsMobile();
   const [cart, setCart] = useState<CartItemWithDiscount[]>([]);
@@ -44,12 +48,22 @@ export default function POS() {
   const [discount, setDiscount] = useState(0);
 
   const addToCart = (product: Product, qty: number = 1) => {
+    const existing = cart.find(item => item.product.id === product.id);
+    const newQty = (existing ? existing.quantity : 0) + qty;
+    if (newQty > product.stock) {
+      toast({
+        title: "Stock Limit Exceeded",
+        description: `Cannot add more "${product.name}". Available stock is only ${product.stock} ${product.unit}.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setCart(prev => {
-      const existing = prev.find(item => item.product.id === product.id);
       if (existing) {
         return prev.map(item =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + qty }
+            ? { ...item, quantity: newQty }
             : item
         );
       }
@@ -64,8 +78,17 @@ export default function POS() {
 
   const updateQty = (productId: string, qty: number) => {
     if (qty <= 0) return removeFromCart(productId);
-    setCart(prev => prev.map(item =>
-      item.product.id === productId ? { ...item, quantity: qty } : item
+    const item = cart.find(i => i.product.id === productId);
+    if (item && qty > item.product.stock) {
+      toast({
+        title: "Stock Limit Exceeded",
+        description: `Only ${item.product.stock} ${item.product.unit} available in stock for "${item.product.name}".`,
+        variant: "destructive",
+      });
+      return;
+    }
+    setCart(prev => prev.map(i =>
+      i.product.id === productId ? { ...i, quantity: qty } : i
     ));
   };
 
@@ -83,6 +106,19 @@ export default function POS() {
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
+
+    // Validate stock before checkout
+    for (const item of cart) {
+      if (item.quantity > item.product.stock) {
+        toast({
+          title: "Insufficient Stock",
+          description: `Cannot sell ${item.quantity} ${item.product.unit} of "${item.product.name}". Only ${item.product.stock} ${item.product.unit} available!`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     // Calculate discounted rates for items using each item's custom price
@@ -118,6 +154,7 @@ export default function POS() {
       onError: () => setIsSubmitting(false)
     });
   };
+
 
   const filteredProducts = products?.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) &&

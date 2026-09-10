@@ -117,21 +117,23 @@ export class DatabaseStorage implements IStorage {
     const clientList: ClientType[] = [];
 
     for (const c of clients) {
-      const clientId = c._id;
+      const cIdStr = c._id.toString();
+      const matchClientId = { $in: [c._id, cIdStr] };
+
       const salesSum = await Sale.aggregate([
-        { $match: { clientId } },
+        { $match: { clientId: matchClientId } },
         { $group: { _id: null, total: { $sum: "$totalAmount" } } }
       ]);
       const purchasesSum = await Purchase.aggregate([
-        { $match: { clientId } },
+        { $match: { clientId: matchClientId } },
         { $group: { _id: null, total: { $sum: "$totalAmount" } } }
       ]);
       const paymentsIn = await ClientPayment.aggregate([
-        { $match: { clientId, type: "in" } },
+        { $match: { clientId: matchClientId, type: "in" } },
         { $group: { _id: null, total: { $sum: "$amount" } } }
       ]);
       const paymentsOut = await ClientPayment.aggregate([
-        { $match: { clientId, type: "out" } },
+        { $match: { clientId: matchClientId, type: "out" } },
         { $group: { _id: null, total: { $sum: "$amount" } } }
       ]);
 
@@ -221,8 +223,11 @@ export class DatabaseStorage implements IStorage {
       dateQuery = { date: { $gte: start, $lte: end } };
     }
 
+    const cIdStr = clientId.toString();
+    const matchClientId = { $in: [clientObjectId, cIdStr] };
+
     // Fetch Sales linked to this Client
-    const sales = await Sale.find({ clientId: clientObjectId, ...dateQuery })
+    const sales = await Sale.find({ clientId: matchClientId, ...dateQuery })
       .populate("userId", "username")
       .sort({ date: -1 });
 
@@ -239,7 +244,7 @@ export class DatabaseStorage implements IStorage {
     // Fetch Purchases linked to this Client (or matching supplier name)
     const purchaseQuery: any = {
       $or: [
-        { clientId: clientObjectId },
+        { clientId: matchClientId },
         { supplier: new RegExp(`^${client.name}$`, 'i') }
       ],
       ...dateQuery
@@ -249,7 +254,7 @@ export class DatabaseStorage implements IStorage {
       .sort({ date: -1 });
 
     // Fetch Payments
-    const payments = await ClientPayment.find({ clientId: clientObjectId, ...dateQuery })
+    const payments = await ClientPayment.find({ clientId: matchClientId, ...dateQuery })
       .populate("userId", "username")
       .sort({ date: -1 });
 
@@ -412,7 +417,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePurchase(id: string, updates: any): Promise<PurchaseType | null> {
-    return await Purchase.findByIdAndUpdate(id, updates, { returnDocument: 'after' });
+    const existing = await Purchase.findById(id);
+    if (!existing) return null;
+
+    const oldQty = Number(existing.quantity) || 0;
+    const newQty = updates.quantity !== undefined ? Number(updates.quantity) : oldQty;
+    const qtyDiff = newQty - oldQty;
+
+    const updated = await Purchase.findByIdAndUpdate(id, updates, { returnDocument: 'after' });
+    if (updated && (qtyDiff !== 0 || updates.rate)) {
+      await Product.findByIdAndUpdate(existing.productId, {
+        $inc: { stock: qtyDiff },
+        ...(updates.rate ? { $set: { purchaseRate: Number(updates.rate) } } : {})
+      });
+    }
+    return updated;
   }
 
   async deletePurchase(id: string): Promise<void> {
@@ -437,6 +456,20 @@ export class DatabaseStorage implements IStorage {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
+      // 1. Strict Stock Validation: Verify available stock for all items before performing sale
+      for (const item of items) {
+        const prod = await Product.findById(item.productId).session(session);
+        if (!prod) {
+          throw new Error(`Product not found`);
+        }
+        const requestedQty = Number(item.quantity);
+        if (prod.stock < requestedQty) {
+          throw new Error(
+            `Insufficient stock for "${prod.name}". Available: ${prod.stock} ${prod.unit}, Requested: ${requestedQty} ${prod.unit}`
+          );
+        }
+      }
+
       let totalAmount = 0;
       items.forEach((item) => (totalAmount += Number(item.quantity) * Number(item.rate)));
 
@@ -528,7 +561,9 @@ export class DatabaseStorage implements IStorage {
       start.setFullYear(start.getFullYear() - 1);
     } else if (filter === "custom" && fromDate && toDate) {
       start = new Date(fromDate);
+      start.setHours(0, 0, 0, 0);
       end = new Date(toDate);
+      end.setHours(23, 59, 59, 999);
     }
 
     const matchQuery = { date: { $gte: start, $lte: end } };
