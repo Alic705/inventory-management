@@ -170,7 +170,7 @@ export default function POS() {
   const totalDiscountAmount = (subtotal * discount) / 100;
   const total = subtotal - totalDiscountAmount;
 
-  const CartContent = () => (
+  const renderCartContent = () => (
     <>
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {cart.length === 0 ? (
@@ -219,8 +219,12 @@ export default function POS() {
                       type="number"
                       step="any"
                       min="0"
-                      value={currentRate}
-                      onChange={(e) => updateRate(item.product.id, e.target.value === "" ? 0 : Number(e.target.value))}
+                      value={currentRate === 0 ? "" : currentRate}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const valStr = e.target.value.replace(/^0+(?=\d)/, '');
+                        updateRate(item.product.id, valStr === "" ? 0 : Number(valStr));
+                      }}
                       className="h-6 w-full text-xs font-mono font-bold p-0 border-0 bg-transparent focus-visible:ring-0 text-foreground"
                       title="Edit selling price for this customer"
                     />
@@ -240,8 +244,12 @@ export default function POS() {
                       type="number"
                       step="any"
                       min="0.1"
-                      value={item.quantity}
-                      onChange={(e) => updateQty(item.product.id, e.target.value === "" ? 0 : Number(e.target.value))}
+                      value={item.quantity === 0 ? "" : item.quantity}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const valStr = e.target.value.replace(/^0+(?=\d)/, '');
+                        updateQty(item.product.id, valStr === "" ? 0 : Number(valStr));
+                      }}
                       className="h-7 w-14 text-xs font-mono font-bold text-center p-0 rounded-lg bg-muted/40"
                     />
 
@@ -304,8 +312,12 @@ export default function POS() {
               min="0"
               max="100"
               step="0.1"
-              value={discount}
-              onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+              value={discount === 0 ? "" : discount}
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => {
+                const valStr = e.target.value.replace(/^0+(?=\d)/, '');
+                setDiscount(valStr === "" ? 0 : parseFloat(valStr));
+              }}
               className="h-9 rounded-xl font-mono text-sm"
             />
             <Button
@@ -449,7 +461,7 @@ export default function POS() {
               </SheetTitle>
             </SheetHeader>
             <div className="flex-1 flex flex-col min-h-0">
-              <CartContent />
+              {renderCartContent()}
             </div>
           </SheetContent>
         </Sheet>
@@ -462,7 +474,7 @@ export default function POS() {
             </h2>
           </div>
           <div className="flex-1 flex flex-col min-h-0">
-            <CartContent />
+            {renderCartContent()}
           </div>
         </Card>
       )}

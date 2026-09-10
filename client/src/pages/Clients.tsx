@@ -334,10 +334,12 @@ export default function Clients() {
                     id="client-opening-balance"
                     type="number"
                     placeholder="0 (Positive = Receivable, Negative = Payable)"
-                    value={formData.openingBalance || 0}
-                    onChange={(e) =>
-                      setFormData({ ...formData, openingBalance: parseFloat(e.target.value) || 0 })
-                    }
+                    value={formData.openingBalance === 0 ? "" : formData.openingBalance}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const valStr = e.target.value.replace(/^0+(?=\d)/, '');
+                      setFormData({ ...formData, openingBalance: valStr === "" ? 0 : parseFloat(valStr) || 0 });
+                    }}
                     className="rounded-xl font-mono"
                   />
                   <p className="text-xs text-muted-foreground">

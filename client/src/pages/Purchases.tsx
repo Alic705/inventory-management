@@ -391,7 +391,11 @@ export default function Purchases() {
                       min="0"
                       placeholder="e.g. 120"
                       value={newSaleRate}
-                      onChange={(e) => setNewSaleRate(e.target.value === "" ? "" : Number(e.target.value))}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const valStr = e.target.value.replace(/^0+(?=\d)/, '');
+                        setNewSaleRate(valStr === "" ? "" : Number(valStr));
+                      }}
                       className="rounded-xl h-10 bg-background font-mono"
                     />
                     <p className="text-[11px] text-muted-foreground">
@@ -414,7 +418,11 @@ export default function Purchases() {
                     min="0.01"
                     placeholder="e.g. 50"
                     value={quantity}
-                    onChange={(e) => setQuantity(e.target.value === "" ? "" : Number(e.target.value))}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const valStr = e.target.value.replace(/^0+(?=\d)/, '');
+                      setQuantity(valStr === "" ? "" : Number(valStr));
+                    }}
                     className="rounded-xl h-11 font-mono text-base"
                     required
                   />
@@ -431,7 +439,11 @@ export default function Purchases() {
                     min="0"
                     placeholder="e.g. 80"
                     value={rate}
-                    onChange={(e) => setRate(e.target.value === "" ? "" : Number(e.target.value))}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const valStr = e.target.value.replace(/^0+(?=\d)/, '');
+                      setRate(valStr === "" ? "" : Number(valStr));
+                    }}
                     className="rounded-xl h-11 font-mono text-base"
                     required
                   />

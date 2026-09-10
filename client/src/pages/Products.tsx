@@ -140,17 +140,17 @@ export default function Products() {
 
                 <div className="space-y-2">
                   <Label>{t.purchaseRate}</Label>
-                  <Input type="number" {...form.register("purchaseRate")} className="rounded-xl" />
+                  <Input type="number" onFocus={(e) => e.target.select()} {...form.register("purchaseRate")} className="rounded-xl" />
                 </div>
 
                 <div className="space-y-2">
                   <Label>{t.saleRate}</Label>
-                  <Input type="number" {...form.register("saleRate")} className="rounded-xl" />
+                  <Input type="number" onFocus={(e) => e.target.select()} {...form.register("saleRate")} className="rounded-xl" />
                 </div>
 
                 <div className="sm:col-span-2 space-y-2">
                   <Label>{t.initialStock}</Label>
-                  <Input type="number" step="0.1" {...form.register("stock")} className="rounded-xl" />
+                  <Input type="number" step="0.1" onFocus={(e) => e.target.select()} {...form.register("stock")} className="rounded-xl" />
                 </div>
               </div>
 

@@ -171,7 +171,7 @@ export default function Expenses() {
 
               <div className="space-y-2">
                 <Label>{t.amount}</Label>
-                <Input type="number" {...form.register("amount")} className="rounded-xl" />
+                <Input type="number" onFocus={(e) => e.target.select()} {...form.register("amount")} className="rounded-xl" />
               </div>
 
               <div className="flex justify-end pt-4">

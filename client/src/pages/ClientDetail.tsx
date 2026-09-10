@@ -1058,7 +1058,8 @@ export default function ClientDetail() {
                 min="1"
                 placeholder="e.g. 5000"
                 value={paymentAmount}
-                onChange={(e) => setPaymentAmount(e.target.value)}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setPaymentAmount(e.target.value.replace(/^0+(?=\d)/, ''))}
                 required
                 className="font-mono text-lg font-bold rounded-xl"
               />
