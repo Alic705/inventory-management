@@ -49,9 +49,26 @@ export async function comparePasswords(supplied: string, stored: string): Promis
 
 export function setupAuth(app: Express) {
   /* ---------- CORS ---------- */
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:5000",
+    process.env.CLIENT_ORIGIN,
+    process.env.FRONTEND_URL,
+  ].filter(Boolean) as string[];
+
   app.use(
     cors({
-      origin: "http://localhost:5173",
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (
+          allowedOrigins.includes(origin) ||
+          origin.endsWith(".vercel.app") ||
+          process.env.NODE_ENV !== "production"
+        ) {
+          return callback(null, true);
+        }
+        return callback(null, true);
+      },
       credentials: true,
     }),
   );
@@ -63,14 +80,15 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // dev only
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   };
 
   app.set("trust proxy", 1);
   app.use(session(sessionSettings));
+
 
   /* ---------- PASSPORT ---------- */
   app.use(passport.initialize());
