@@ -1001,7 +1001,7 @@ export default function ClientDetail() {
 
       {/* Record Payment Dialog */}
       <Dialog open={paymentOpen} onOpenChange={setPaymentOpen}>
-        <DialogContent className="sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[92vw] max-w-[620px] sm:max-w-[680px] md:max-w-[720px] rounded-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-xl font-display font-bold flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-primary" />
@@ -1015,10 +1015,10 @@ export default function ClientDetail() {
           </DialogHeader>
 
           <form onSubmit={handleRecordPayment} className="space-y-4 pt-2">
-            {/* Payment Type: 1 SINGLE ROW SIDE BY SIDE */}
+            {/* Payment Type: Responsive Row/Stack */}
             <div className="space-y-2">
               <Label>{t.paymentType} *</Label>
-              <div className="flex flex-row gap-2.5 w-full">
+              <div className="flex flex-col sm:flex-row gap-2.5 w-full">
                 <Button
                   type="button"
                   variant={paymentType === "in" ? "default" : "outline"}
@@ -1030,7 +1030,7 @@ export default function ClientDetail() {
                   onClick={() => setPaymentType("in")}
                 >
                   <ArrowDownLeft className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{t.paymentIn}</span>
+                  <span>{t.paymentIn}</span>
                 </Button>
                 <Button
                   type="button"
@@ -1043,7 +1043,7 @@ export default function ClientDetail() {
                   onClick={() => setPaymentType("out")}
                 >
                   <ArrowUpRight className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{t.paymentOut}</span>
+                  <span>{t.paymentOut}</span>
                 </Button>
               </div>
             </div>
@@ -1087,10 +1087,10 @@ export default function ClientDetail() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="cash">{t.cash} (Cash)</SelectItem>
-                    <SelectItem value="bank">{t.bank} (Bank Transfer)</SelectItem>
-                    <SelectItem value="online">{t.online} (EasyPaisa / JazzCash / Mobile)</SelectItem>
-                    <SelectItem value="cheque">{t.cheque} (Cheque)</SelectItem>
+                    <SelectItem value="cash">{t.cash}</SelectItem>
+                    <SelectItem value="bank">{t.bank}</SelectItem>
+                    <SelectItem value="online">{t.online}</SelectItem>
+                    <SelectItem value="cheque">{t.cheque}</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1118,7 +1118,7 @@ export default function ClientDetail() {
                     ? (language === 'ur' ? 'رقم کس نے وصول کی؟ (Admin / Staff / Manager)' : 'Cash Received By (Person Name / Staff)')
                     : (language === 'ur' ? 'رقم کس نے ادا کی؟ (Admin / Staff / Manager)' : 'Cash Paid By (Person Name / Staff)')}
                 </Label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Select
                     value={receivedBy}
                     onValueChange={(val) => setReceivedBy(val)}
@@ -1382,7 +1382,7 @@ export default function ClientDetail() {
 
       {/* Edit Client Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-[550px] rounded-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[92vw] max-w-[620px] sm:max-w-[680px] md:max-w-[720px] rounded-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-xl font-display font-bold">
               {t.editClient}

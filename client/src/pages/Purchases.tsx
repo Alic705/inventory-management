@@ -263,7 +263,7 @@ export default function Purchases() {
               <Plus className="mr-2 h-5 w-5" /> {t.newPurchase}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[540px] rounded-2xl max-h-[90vh] overflow-y-auto p-6">
+          <DialogContent className="w-[92vw] max-w-[620px] sm:max-w-[680px] md:max-w-[720px] rounded-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle className="text-xl font-display font-bold flex items-center gap-2">
                 <PackagePlus className="h-6 w-6 text-primary" />

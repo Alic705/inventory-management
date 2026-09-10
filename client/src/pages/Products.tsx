@@ -95,7 +95,7 @@ export default function Products() {
             form.reset();
           }
         }}>
-          <DialogContent className="sm:max-w-[425px] rounded-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[92vw] max-w-[550px] sm:max-w-[620px] rounded-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle className="text-lg sm:text-xl">{t.editProduct}</DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground">{t.leaveBlankToKeep || "Update product details"}</DialogDescription>

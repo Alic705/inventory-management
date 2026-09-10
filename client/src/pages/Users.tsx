@@ -85,7 +85,7 @@ export default function Users() {
               <UserPlus className="mr-2 h-4 w-4" /> {t.add} {t.users}
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[92vw] max-w-[550px] sm:max-w-[620px] rounded-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle className="text-lg sm:text-xl">{editingUser ? t.edit : t.createNewUser}</DialogTitle>
             </DialogHeader>
