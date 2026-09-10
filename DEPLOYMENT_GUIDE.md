@@ -15,7 +15,8 @@ Yeh guide aapko apka **Backend (Render.com)** aur **Frontend (Vercel)** par 100%
    - **Branch:** `main` (ya master)
    - **Root Directory:** `project-fixer` (agar subfolder hai, varna empty)
    - **Runtime:** `Node`
-   - **Build Command:** `npm install && npm run build`
+   - **Build Command:** `npm install --include=dev && npm run build`
+
    - **Start Command:** `npm start`
    - **Instance Type:** `Free`
 5. **Environment Variables** (Advanced section mein add karein):
