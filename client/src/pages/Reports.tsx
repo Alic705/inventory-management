@@ -60,7 +60,8 @@ export default function Reports() {
   const { clients, isLoading: isLoadingClients } = useClients();
   const { products } = useProducts();
   const { t, language } = useI18n();
-  const { translateProductName } = useTranslate();
+  const { translateProductName, translateCategory, translateCustom } = useTranslate();
+
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const totalSales = stats?.dailySales ?? 0;
@@ -507,10 +508,10 @@ export default function Reports() {
                       return (
                         <TableRow key={c.id || (c as any)._id} className="hover:bg-muted/30 transition-colors">
                           <TableCell className="font-semibold text-foreground">
-                            {c.name}
+                            {translateCustom(c.id || (c as any)._id, c.name)}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {c.company || "—"}
+                            {c.company ? translateCustom((c.id || (c as any)._id) + '-comp', c.company) : "—"}
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="capitalize text-xs font-normal">

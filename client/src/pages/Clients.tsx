@@ -31,12 +31,15 @@ import {
   Copy,
   Check,
 } from "lucide-react";
+import { useTranslate } from "@/hooks/use-translate";
 import type { Client, ClientType, InsertClient } from "@shared/schema";
 
 export default function Clients() {
   const { user } = useAuth();
   const { clients, isLoading, createClient, updateClient, deleteClient } = useClients();
   const { t, language } = useI18n();
+  const { translateCustom } = useTranslate();
+
 
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -540,12 +543,12 @@ export default function Clients() {
                           <div>
                             <Link href={`/clients/${clientId}`}>
                               <span className="font-semibold text-foreground hover:text-primary transition-colors cursor-pointer block">
-                                {client.name}
+                                {translateCustom(clientId, client.name)}
                               </span>
                             </Link>
                             {client.address && (
                               <span className="text-xs text-muted-foreground block truncate max-w-[200px]">
-                                {client.address}
+                                {translateCustom(clientId + '-addr', client.address)}
                               </span>
                             )}
                           </div>
@@ -554,7 +557,7 @@ export default function Clients() {
 
                       {/* Company */}
                       <TableCell className="text-muted-foreground text-sm font-medium">
-                        {client.company || "—"}
+                        {client.company ? translateCustom(clientId + '-comp', client.company) : "—"}
                       </TableCell>
 
                       {/* Phone */}

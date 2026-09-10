@@ -49,6 +49,7 @@ import {
   X,
   UserCheck,
 } from "lucide-react";
+import { useTranslate } from "@/hooks/use-translate";
 import type { PaymentMethod, ClientType, InsertClient } from "@shared/schema";
 
 export default function ClientDetail() {
@@ -58,7 +59,9 @@ export default function ClientDetail() {
   const { user } = useAuth();
   const { users } = useUsers();
   const { t, language } = useI18n();
+  const { translateCustom, translateProductName, translateCategory } = useTranslate();
   const { updateClient } = useClients();
+
 
   // Time filter state
   const [filter, setFilter] = useState<string>("all");
@@ -706,7 +709,7 @@ export default function ClientDetail() {
                             {item.reference || "—"}
                           </TableCell>
                           <TableCell className="font-medium text-sm text-foreground">
-                            {item.description}
+                            {translateCustom(item.id || item.description, item.description)}
                           </TableCell>
                           <TableCell className={`font-mono font-semibold text-blue-600 dark:text-blue-400 ${language === 'ur' ? 'text-left' : 'text-right'}`}>
                             {item.debit > 0 ? `Rs. ${item.debit.toLocaleString()}` : "—"}

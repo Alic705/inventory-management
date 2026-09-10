@@ -36,8 +36,9 @@ export default function Purchases() {
   const { clients } = useClients();
   const { user } = useAuth();
   const { t, language } = useI18n();
-  const { translateProductName, translateCategory } = useTranslate();
+  const { translateProductName, translateCategory, translateCustom } = useTranslate();
   const { toast } = useToast();
+
 
   const [open, setOpen] = useState(false);
   const [purchaseMode, setPurchaseMode] = useState<"existing" | "new">("existing");
@@ -651,9 +652,11 @@ export default function Purchases() {
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
                           {p.clientId?.name ? (
-                            <span className="font-medium text-foreground">{p.clientId.name}</span>
+                            <span className="font-medium text-foreground">{translateCustom(p.id, p.clientId.name)}</span>
+                          ) : p.supplier ? (
+                            translateCustom(p.id + '-sup', p.supplier)
                           ) : (
-                            p.supplier || '—'
+                            '—'
                           )}
                         </TableCell>
                         <TableCell className="font-mono text-sm font-medium text-foreground">

@@ -24,11 +24,15 @@ const formSchema = api.expenses.create.input.extend({
 
 type FormValues = z.infer<typeof formSchema>;
 
+import { useTranslate } from "@/hooks/use-translate";
+
 export default function Expenses() {
   const { user } = useAuth();
   const { users } = useUsers();
   const { t, language } = useI18n();
+  const { translateCategory, translateCustom } = useTranslate();
   const [open, setOpen] = useState(false);
+
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   type ExpenseFilter = "all" | "admin" | { userId: string };
 
@@ -209,13 +213,9 @@ export default function Expenses() {
                       </TableCell>
                     )}
                     <TableCell className="font-medium">
-                      {e.category === 'Rent' ? (language === 'ur' ? 'کرایہ' : language === 'roman' ? 'Kiraya' : 'Rent') :
-                        e.category === 'Utilities' ? (language === 'ur' ? 'بل' : language === 'roman' ? 'Bijli/Pani' : 'Utilities') :
-                          e.category === 'Salary' ? (language === 'ur' ? 'تنخواہ' : language === 'roman' ? 'Tankhwa' : 'Salary') :
-                            e.category === 'Maintenance' ? (language === 'ur' ? 'مرمت' : language === 'roman' ? 'Marammat' : 'Maintenance') :
-                              e.category}
+                      {translateCategory(e.category)}
                     </TableCell>
-                    <TableCell>{e.description || '-'}</TableCell>
+                    <TableCell>{e.description ? translateCustom(e.id, e.description) : '-'}</TableCell>
                     <TableCell className="text-right font-bold text-destructive">Rs {e.amount}</TableCell>
                     {isAdmin && (
                       <TableCell>
