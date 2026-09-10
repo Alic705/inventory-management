@@ -151,7 +151,7 @@ export default function Reports() {
     {
       title: t.totalSales,
       value: `Rs ${totalSales.toLocaleString()}`,
-      subtext: language === 'ur' ? 'کل فروخت کی رقم' : 'Total sales revenue',
+      subtext: t.totalSalesSubtext,
       icon: ShoppingCart,
       color: "text-blue-600 dark:text-blue-400",
       bg: "bg-blue-100 dark:bg-blue-900/20",
@@ -159,7 +159,7 @@ export default function Reports() {
     {
       title: t.totalPurchases,
       value: `Rs ${totalPurchases.toLocaleString()}`,
-      subtext: language === 'ur' ? 'اسٹاک خریداری لاگت' : 'Stock purchase cost',
+      subtext: t.stockPurchaseCostSubtext,
       icon: ShoppingBag,
       color: "text-amber-600 dark:text-amber-400",
       bg: "bg-amber-100 dark:bg-amber-900/20",
@@ -167,7 +167,7 @@ export default function Reports() {
     {
       title: t.expenses,
       value: `Rs ${totalExpenses.toLocaleString()}`,
-      subtext: language === 'ur' ? 'روزمرہ اخراجات' : 'Operating expenses',
+      subtext: t.operatingExpensesSubtext,
       icon: TrendingDown,
       color: "text-orange-600 dark:text-orange-400",
       bg: "bg-orange-100 dark:bg-orange-900/20",
@@ -175,9 +175,7 @@ export default function Reports() {
     {
       title: t.netProfit,
       value: `Rs ${netProfit.toLocaleString()}`,
-      subtext: netProfit >= 0
-        ? (language === 'ur' ? 'خالص منافع' : 'Net positive profit')
-        : (language === 'ur' ? 'خسارہ' : 'Operating loss'),
+      subtext: netProfit >= 0 ? t.netPositiveProfitSubtext : t.operatingLossSubtext,
       icon: DollarSign,
       color: netProfit >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive",
       bg: netProfit >= 0 ? "bg-emerald-100 dark:bg-emerald-900/20" : "bg-destructive/10",
@@ -185,7 +183,7 @@ export default function Reports() {
     {
       title: t.receivable,
       value: `Rs ${totalReceivables.toLocaleString()}`,
-      subtext: language === 'ur' ? 'گاہکوں سے وصول طلب' : 'From customers',
+      subtext: t.fromCustomersSubtext,
       icon: ArrowDownLeft,
       color: "text-emerald-600 dark:text-emerald-400",
       bg: "bg-emerald-100 dark:bg-emerald-900/20",
@@ -193,7 +191,7 @@ export default function Reports() {
     {
       title: t.payable,
       value: `Rs ${totalPayables.toLocaleString()}`,
-      subtext: language === 'ur' ? 'سپلائرز کو واجب الادا' : 'To suppliers',
+      subtext: t.toSuppliersSubtext,
       icon: ArrowUpRight,
       color: "text-rose-600 dark:text-rose-400",
       bg: "bg-rose-100 dark:bg-rose-900/20",
@@ -209,9 +207,7 @@ export default function Reports() {
             {t.reports}
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground">
-            {language === 'ur'
-              ? 'مالیاتی رپورٹس، فروخت، خریداری، اخراجات اور کھاتوں کا مکمل تجزیہ۔'
-              : 'Complete financial overview, sales, purchases, expenses & ledger reports.'}
+            {t.reportsSubtext}
           </p>
         </div>
 
@@ -281,7 +277,7 @@ export default function Reports() {
             className="rounded-xl shadow-md shadow-primary/20 gap-1.5 h-10 text-xs sm:text-sm"
           >
             <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Export</span> CSV
+            <span className="hidden sm:inline">{t.exportCSV}</span>
           </Button>
 
           {/* Print */}
@@ -291,7 +287,7 @@ export default function Reports() {
             className="rounded-xl gap-1.5 h-10 text-xs sm:text-sm hidden sm:inline-flex"
           >
             <Printer className="h-4 w-4" />
-            Print
+            {t.printLabel}
           </Button>
         </div>
       </div>
@@ -333,14 +329,14 @@ export default function Reports() {
                 className="rounded-lg gap-1.5 text-xs sm:text-sm py-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"
               >
                 <BarChart3 className="h-3.5 w-3.5" />
-                <span>Financial Overview</span>
+                <span>{t.financialOverviewTab}</span>
               </TabsTrigger>
               <TabsTrigger
                 value="parties"
                 className="rounded-lg gap-1.5 text-xs sm:text-sm py-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"
               >
                 <Users className="h-3.5 w-3.5" />
-                <span>Party Ledgers</span>
+                <span>{t.partyLedgersTab}</span>
                 <span className="font-mono text-[11px] bg-primary/10 text-primary px-1.5 py-0.2 rounded-full">
                   {clients.length}
                 </span>
@@ -350,7 +346,7 @@ export default function Reports() {
                 className="rounded-lg gap-1.5 text-xs sm:text-sm py-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"
               >
                 <PieChart className="h-3.5 w-3.5" />
-                <span>Expenses Breakdown</span>
+                <span>{t.expensesBreakdownTab}</span>
                 <span className="font-mono text-[11px] bg-orange-500/10 text-orange-600 px-1.5 py-0.2 rounded-full">
                   {expenses?.length || 0}
                 </span>
@@ -360,7 +356,7 @@ export default function Reports() {
                 className="rounded-lg gap-1.5 text-xs sm:text-sm py-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"
               >
                 <Receipt className="h-3.5 w-3.5" />
-                <span>Stock Purchases</span>
+                <span>{t.stockPurchasesTab}</span>
                 <span className="font-mono text-[11px] bg-amber-500/10 text-amber-600 px-1.5 py-0.2 rounded-full">
                   {purchases?.length || 0}
                 </span>
@@ -376,34 +372,34 @@ export default function Reports() {
                 <CardHeader>
                   <CardTitle className="text-base font-bold font-display flex items-center gap-2">
                     <FileSpreadsheet className="h-4 w-4 text-primary" />
-                    Income Statement (P&L)
+                    {t.incomeStatementTitle}
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Period: {dateFilter.toUpperCase()}
+                    {t.periodLabel}: {dateFilter.toUpperCase()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-muted-foreground">Gross Sales Revenue:</span>
+                      <span className="text-muted-foreground">{t.grossSalesRevenue}</span>
                       <span className="font-mono font-bold text-foreground">
                         Rs. {totalSales.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-muted-foreground">Less Stock Purchases:</span>
+                      <span className="text-muted-foreground">{t.lessStockPurchases}</span>
                       <span className="font-mono font-semibold text-amber-600">
                         - Rs. {totalPurchases.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-muted-foreground">Less Operating Costs:</span>
+                      <span className="text-muted-foreground">{t.lessOperatingCosts}</span>
                       <span className="font-mono font-semibold text-orange-600">
                         - Rs. {totalExpenses.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-3 border-t-2 border-primary/30 text-base">
-                      <span className="font-bold text-foreground">Net Operating Profit:</span>
+                      <span className="font-bold text-foreground">{t.netOperatingProfit}</span>
                       <span className={`font-mono font-bold text-lg ${netProfit >= 0 ? "text-emerald-600" : "text-destructive"}`}>
                         {netProfit >= 0 ? "+" : ""}Rs. {netProfit.toLocaleString()}
                       </span>
@@ -412,13 +408,13 @@ export default function Reports() {
 
                   <div className="p-3 bg-muted/40 rounded-xl text-xs space-y-1">
                     <div className="flex justify-between text-muted-foreground">
-                      <span>Profit Margin:</span>
+                      <span>{t.profitMarginLabel}</span>
                       <span className="font-mono font-bold text-foreground">
                         {totalSales > 0 ? ((netProfit / totalSales) * 100).toFixed(1) : 0}%
                       </span>
                     </div>
                     <div className="flex justify-between text-muted-foreground">
-                      <span>Expense to Sales:</span>
+                      <span>{t.expenseToSalesLabel}</span>
                       <span className="font-mono font-bold text-foreground">
                         {totalSales > 0 ? ((totalExpenses / totalSales) * 100).toFixed(1) : 0}%
                       </span>
@@ -432,7 +428,7 @@ export default function Reports() {
                 <CardHeader>
                   <CardTitle className="text-base font-bold font-display flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-primary" />
-                    Sales Revenue Activity
+                    {t.salesRevenueActivityTitle}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pl-0 sm:pl-2">
@@ -469,7 +465,7 @@ export default function Reports() {
                       </ResponsiveContainer>
                     ) : (
                       <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-                        No sales recorded for this period.
+                        {t.noSalesRecorded}
                       </div>
                     )}
                   </div>
@@ -490,8 +486,8 @@ export default function Reports() {
                     <TableHead className="text-right min-w-[110px]">{t.openingBalance}</TableHead>
                     <TableHead className="text-right min-w-[110px]">{t.totalSales}</TableHead>
                     <TableHead className="text-right min-w-[110px]">{t.totalPurchases}</TableHead>
-                    <TableHead className="text-right min-w-[110px]">Received (In)</TableHead>
-                    <TableHead className="text-right min-w-[110px]">Paid (Out)</TableHead>
+                    <TableHead className="text-right min-w-[110px]">{t.receivedIn}</TableHead>
+                    <TableHead className="text-right min-w-[110px]">{t.paidOut}</TableHead>
                     <TableHead className="text-right min-w-[140px]">{t.netBalance}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -515,7 +511,7 @@ export default function Reports() {
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="capitalize text-xs font-normal">
-                              {c.type}
+                              {c.type === "customer" ? t.customer : c.type === "supplier" ? t.supplierType : t.bothType}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right font-mono text-xs">
@@ -562,7 +558,7 @@ export default function Reports() {
               <Card className="rounded-2xl border-border/50 shadow-sm bg-card lg:col-span-1">
                 <CardHeader>
                   <CardTitle className="text-base font-bold font-display">
-                    Category Breakdown
+                    {t.categoryBreakdown}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -588,7 +584,7 @@ export default function Reports() {
                         </RechartsPieChart>
                       </ResponsiveContainer>
                     ) : (
-                      <p className="text-muted-foreground text-sm">No expenses recorded.</p>
+                      <p className="text-muted-foreground text-sm">{t.noExpensesRecorded}</p>
                     )}
                   </div>
                   <div className="grid grid-cols-2 gap-2 mt-2">
@@ -598,7 +594,7 @@ export default function Reports() {
                           className="h-2.5 w-2.5 rounded-full flex-shrink-0"
                           style={{ backgroundColor: COLORS[idx % COLORS.length] }}
                         />
-                        <span className="truncate text-muted-foreground">{cat.name}:</span>
+                        <span className="truncate text-muted-foreground">{translateCategory(cat.name)}:</span>
                         <span className="font-mono font-bold text-foreground ml-auto">
                           Rs. {cat.value.toLocaleString()}
                         </span>
@@ -627,10 +623,10 @@ export default function Reports() {
                             {format(new Date(e.date), "yyyy-MM-dd")}
                           </TableCell>
                           <TableCell className="font-medium text-sm">
-                            {e.category}
+                            {translateCategory(e.category)}
                           </TableCell>
                           <TableCell className="text-xs text-muted-foreground">
-                            {e.description || "—"}
+                            {e.description ? translateCustom(`exp-desc-${e.id}`, e.description) : "—"}
                           </TableCell>
                           <TableCell className="text-right font-mono font-bold text-sm text-destructive">
                             Rs. {e.amount.toLocaleString()}
@@ -662,12 +658,13 @@ export default function Reports() {
                   {purchases?.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
-                        No purchases found.
+                        {t.noPurchasesFound}
                       </TableCell>
                     </TableRow>
                   ) : (
                     purchases?.map((p) => {
-                      const prodName = p.productId?.name || "Product Stock";
+                      const rawName = p.productId?.name || "Product Stock";
+                      const prodName = translateProductName(rawName);
                       return (
                         <TableRow key={p.id}>
                           <TableCell className="text-xs text-muted-foreground whitespace-nowrap font-mono">
@@ -677,7 +674,7 @@ export default function Reports() {
                             {prodName}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {p.supplier || "—"}
+                            {p.supplier ? translateCustom(`pur-sup-${p.id}`, p.supplier) : "—"}
                           </TableCell>
                           <TableCell className="font-mono text-sm">
                             {p.quantity} {p.productId?.unit || "kg"}

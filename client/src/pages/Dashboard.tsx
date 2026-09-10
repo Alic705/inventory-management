@@ -197,15 +197,15 @@ export default function Dashboard() {
             <div className="space-y-0.5">
               <CardTitle className="text-sm font-bold text-foreground flex items-center gap-1.5">
                 <ArrowDownLeft className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                {t.receivable} (Customer Khata)
+                {t.receivable}
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                {language === 'ur' ? 'گاہکوں سے کل وصول طلب بقایا' : 'Total pending collection from customers'}
+                {t.customerKhataSub}
               </p>
             </div>
             <Link href="/clients">
               <Button size="sm" variant="ghost" className="rounded-xl text-emerald-600 gap-1 text-xs hover:bg-emerald-100 dark:hover:bg-emerald-950/40">
-                View Parties <ArrowRight className="h-3 w-3" />
+                {t.viewParties} <ArrowRight className="h-3 w-3" />
               </Button>
             </Link>
           </CardHeader>
@@ -221,15 +221,15 @@ export default function Dashboard() {
             <div className="space-y-0.5">
               <CardTitle className="text-sm font-bold text-foreground flex items-center gap-1.5">
                 <ArrowUpRight className="h-4 w-4 text-rose-600 dark:text-rose-400" />
-                {t.payable} (Supplier Khata)
+                {t.payable}
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                {language === 'ur' ? 'سپلائرز کو کل واجب الادا بقایا' : 'Total pending payment to suppliers'}
+                {t.supplierKhataSub}
               </p>
             </div>
             <Link href="/clients">
               <Button size="sm" variant="ghost" className="rounded-xl text-rose-600 gap-1 text-xs hover:bg-rose-100 dark:hover:bg-rose-950/40">
-                View Parties <ArrowRight className="h-3 w-3" />
+                {t.viewParties} <ArrowRight className="h-3 w-3" />
               </Button>
             </Link>
           </CardHeader>

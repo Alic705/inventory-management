@@ -166,6 +166,46 @@ export interface Translations {
   noTransactionsFound: string;
   selectClient: string;
   walkInCustomer: string;
+  // Login & Brand
+  inventoryManagement: string;
+  enterCredentials: string;
+  marketManager: string;
+  // Dashboard & Khata
+  viewParties: string;
+  customerKhataSub: string;
+  supplierKhataSub: string;
+  customerKhataLabel: string;
+  supplierKhataLabel: string;
+  // Reports
+  financialOverviewTab: string;
+  partyLedgersTab: string;
+  expensesBreakdownTab: string;
+  stockPurchasesTab: string;
+  incomeStatementTitle: string;
+  periodLabel: string;
+  grossSalesRevenue: string;
+  lessStockPurchases: string;
+  lessOperatingCosts: string;
+  netOperatingProfit: string;
+  profitMarginLabel: string;
+  expenseToSalesLabel: string;
+  salesRevenueActivityTitle: string;
+  exportCSV: string;
+  printLabel: string;
+  reportsSubtext: string;
+  totalSalesSubtext: string;
+  stockPurchaseCostSubtext: string;
+  operatingExpensesSubtext: string;
+  netPositiveProfitSubtext: string;
+  operatingLossSubtext: string;
+  fromCustomersSubtext: string;
+  toSuppliersSubtext: string;
+  categoryBreakdown: string;
+  receivedIn: string;
+  paidOut: string;
+  noSalesRecorded: string;
+  noExpensesRecorded: string;
+  noPurchasesFound: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -322,6 +362,46 @@ const translations: Record<Language, Translations> = {
     noTransactionsFound: "No transactions found for this period",
     selectClient: "Select Client (Optional)",
     walkInCustomer: "Walk-in Customer (General)",
+    // Login & Brand
+    inventoryManagement: "Inventory & Sales Management Software",
+    enterCredentials: "Enter your credentials to access the market management system.",
+    marketManager: "Market Manager",
+    // Dashboard & Khata
+    viewParties: "View Parties",
+    customerKhataSub: "Total pending collection from customers",
+    supplierKhataSub: "Total pending payment to suppliers",
+    customerKhataLabel: "(Customer Khata)",
+    supplierKhataLabel: "(Supplier Khata)",
+    // Reports
+    financialOverviewTab: "Financial Overview",
+    partyLedgersTab: "Party Ledgers",
+    expensesBreakdownTab: "Expenses Breakdown",
+    stockPurchasesTab: "Stock Purchases",
+    incomeStatementTitle: "Income Statement (P&L)",
+    periodLabel: "Period",
+    grossSalesRevenue: "Gross Sales Revenue:",
+    lessStockPurchases: "Less Stock Purchases:",
+    lessOperatingCosts: "Less Operating Costs:",
+    netOperatingProfit: "Net Operating Profit:",
+    profitMarginLabel: "Profit Margin:",
+    expenseToSalesLabel: "Expense to Sales:",
+    salesRevenueActivityTitle: "Sales Revenue Activity",
+    exportCSV: "Export CSV",
+    printLabel: "Print",
+    reportsSubtext: "Complete financial overview, sales, purchases, expenses & ledger reports.",
+    totalSalesSubtext: "Total sales revenue",
+    stockPurchaseCostSubtext: "Stock purchase cost",
+    operatingExpensesSubtext: "Operating expenses",
+    netPositiveProfitSubtext: "Net positive profit",
+    operatingLossSubtext: "Operating loss",
+    fromCustomersSubtext: "From customers",
+    toSuppliersSubtext: "To suppliers",
+    categoryBreakdown: "Category Breakdown",
+    receivedIn: "Received (In)",
+    paidOut: "Paid (Out)",
+    noSalesRecorded: "No sales recorded for this period.",
+    noExpensesRecorded: "No expenses recorded.",
+    noPurchasesFound: "No purchases found.",
   },
   ur: {
     dashboard: "ڈیش بورڈ",
@@ -476,6 +556,46 @@ const translations: Record<Language, Translations> = {
     noTransactionsFound: "اس مدت کے لیے کوئی لین دین نہیں ملا",
     selectClient: "کلائنٹ منتخب کریں (اختیاری)",
     walkInCustomer: "عام گاہک (جنرل)",
+    // Login & Brand
+    inventoryManagement: "انوینٹری اور سیلز مینجمنٹ سافٹ ویئر",
+    enterCredentials: "مارکیٹ مینجمنٹ سسٹم میں داخل ہونے کے لیے اپنا صارف نام اور پاس ورڈ درج کریں۔",
+    marketManager: "مارکیٹ مینیجر",
+    // Dashboard & Khata
+    viewParties: "پارٹیاں دیکھیں",
+    customerKhataSub: "گاہکوں سے کل وصول طلب بقایا",
+    supplierKhataSub: "سپلائرز کو کل واجب الادا بقایا",
+    customerKhataLabel: "(گاہک کھاتہ)",
+    supplierKhataLabel: "(سپلائر کھاتہ)",
+    // Reports
+    financialOverviewTab: "مالیاتی جائزہ",
+    partyLedgersTab: "پارٹی لیجرز",
+    expensesBreakdownTab: "اخراجات کی تفصیل",
+    stockPurchasesTab: "اسٹاک خریداری",
+    incomeStatementTitle: "آمدنی اور نفع و نقصان (P&L)",
+    periodLabel: "مدت",
+    grossSalesRevenue: "کل فروخت آمدنی:",
+    lessStockPurchases: "منہا اسٹاک خریداری:",
+    lessOperatingCosts: "منہا کاروباری اخراجات:",
+    netOperatingProfit: "خالص کاروباری منافع:",
+    profitMarginLabel: "منافع مارجن:",
+    expenseToSalesLabel: "خرچہ بمقابلہ فروخت:",
+    salesRevenueActivityTitle: "فروخت کی سرگرمی",
+    exportCSV: "سی ایس وی ایکسپورٹ",
+    printLabel: "پرنٹ کریں",
+    reportsSubtext: "مالیاتی رپورٹس، فروخت، خریداری، اخراجات اور کھاتوں کا مکمل تجزیہ۔",
+    totalSalesSubtext: "کل فروخت کی رقم",
+    stockPurchaseCostSubtext: "اسٹاک خریداری لاگت",
+    operatingExpensesSubtext: "روزمرہ اخراجات",
+    netPositiveProfitSubtext: "خالص منافع",
+    operatingLossSubtext: "خسارہ",
+    fromCustomersSubtext: "گاہکوں سے وصول طلب",
+    toSuppliersSubtext: "سپلائرز کو واجب الادا",
+    categoryBreakdown: "اقسام کی تفصیل",
+    receivedIn: "وصول شدہ (کیش ان)",
+    paidOut: "ادا شدہ (کیش آؤٹ)",
+    noSalesRecorded: "اس مدت میں کوئی فروخت درج نہیں ہے۔",
+    noExpensesRecorded: "کوئی اخراجات درج نہیں ہیں۔",
+    noPurchasesFound: "کوئی خریداری نہیں ملی۔",
   },
   roman: {
     dashboard: "Dashboard",
@@ -630,6 +750,46 @@ const translations: Record<Language, Translations> = {
     noTransactionsFound: "Is muddat ka koi transaction nahi mila",
     selectClient: "Client Chuno (Ikhtiyari)",
     walkInCustomer: "Aam Gahak (General)",
+    // Login & Brand
+    inventoryManagement: "Inventory aur Sales Management Software",
+    enterCredentials: "Market management system mein login karne ke liye apna username aur password daalein.",
+    marketManager: "Market Manager",
+    // Dashboard & Khata
+    viewParties: "Parties Dekhein",
+    customerKhataSub: "Gahakon se kul vasool talab baqaya",
+    supplierKhataSub: "Suppliers ko kul wajib ul ada baqaya",
+    customerKhataLabel: "(Gahak Khata)",
+    supplierKhataLabel: "(Supplier Khata)",
+    // Reports
+    financialOverviewTab: "Maaliat Ka Jaiza",
+    partyLedgersTab: "Party Ledgers",
+    expensesBreakdownTab: "Kharchon Ki Tafseel",
+    stockPurchasesTab: "Stock Khareedari",
+    incomeStatementTitle: "Aamdani aur Munafa/Nuqsan (P&L)",
+    periodLabel: "Muddat",
+    grossSalesRevenue: "Kul Sale Aamdani:",
+    lessStockPurchases: "Manha Stock Khareedari:",
+    lessOperatingCosts: "Manha Karobari Kharchay:",
+    netOperatingProfit: "Khaalis Karobari Munafa:",
+    profitMarginLabel: "Munafa Margin:",
+    expenseToSalesLabel: "Kharcha Ba-Muqabla Sale:",
+    salesRevenueActivityTitle: "Sale Aamdani Ki Soort-e-Haal",
+    exportCSV: "CSV Export",
+    printLabel: "Print Karein",
+    reportsSubtext: "Maaliat, sale, khareedari, kharchon aur khaton ka mukammal jaiza.",
+    totalSalesSubtext: "Kul sale ki aamdani",
+    stockPurchaseCostSubtext: "Stock khareedari ki laagat",
+    operatingExpensesSubtext: "Rozmarrah karobari kharchay",
+    netPositiveProfitSubtext: "Khaalis munafa",
+    operatingLossSubtext: "Karobari nuqsan",
+    fromCustomersSubtext: "Gahakon se vasool talab",
+    toSuppliersSubtext: "Suppliers ko wajib ul ada",
+    categoryBreakdown: "Aqsam Ki Tafseel",
+    receivedIn: "Vasool Shuda (In)",
+    paidOut: "Ada Shuda (Out)",
+    noSalesRecorded: "Is muddat mein koi sale darj nahi hai.",
+    noExpensesRecorded: "Koi kharchay darj nahi hain.",
+    noPurchasesFound: "Koi khareedari nahi mili.",
   }
 };
 

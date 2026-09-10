@@ -37,9 +37,9 @@ export default function Login() {
           <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-green-600 text-white shadow-xl shadow-primary/30 mb-3 sm:mb-4">
             <Leaf className="h-8 w-8 sm:h-10 sm:w-10" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground ">Inventory & Sales Management Software</h1>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">{t.inventoryManagement}</h1>
           <p className="text-sm sm:text-base text-muted-foreground max-w-xs px-2">
-            Enter your credentials to access the market management system.
+            {t.enterCredentials}
           </p>
         </div>
 
