@@ -1,120 +1,179 @@
 /**
- * Automatic Translation Service using Translation API
- * No need to manually maintain translations!
- * 
- * Three Solutions:
- * 1. Google Translate API (Paid but reliable)
- * 2. LibreTranslate (Free, open-source)
- * 3. OpenAI API (If you have access)
+ * High-Performance Dynamic Live Translation Engine
+ * 1. Persistent localStorage cache (0ms lookup)
+ * 2. Instant dictionary lookup
+ * 3. Free Google Translate API & MyMemory Fallback
  */
 
-// ============================================
-// SOLUTION 1: Using LibreTranslate (FREE & EASY)
-// ============================================
+type TargetLanguage = 'en' | 'ur' | 'roman';
 
-interface TranslationResult {
-  translatedText: string;
-  detectedLanguage?: string;
-}
+const CACHE_KEY = 'project_fixer_translation_cache_v1';
 
-export async function translateText(
-  text: string,
-  targetLanguage: 'en' | 'ur' | 'roman'
-): Promise<string> {
+// Load cache from localStorage
+function loadPersistentCache(): Record<string, string> {
   try {
-    // LibreTranslate API endpoint (free, public)
-    const response = await fetch('https://api.libretranslate.de/translate', {
-      method: 'POST',
-      body: JSON.stringify({
-        q: text,
-        source: 'en',
-        target: targetLanguage === 'ur' ? 'ur' : targetLanguage === 'roman' ? 'en' : 'en',
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = (await response.json()) as TranslationResult;
-    return data.translatedText;
-  } catch (error) {
-    console.error('Translation error:', error);
-    return text; // Return original text if translation fails
+    const raw = localStorage.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
   }
 }
 
-// ============================================
-// SOLUTION 2: Using Cache to Avoid Repeated API Calls
-// ============================================
-
-interface CacheEntry {
-  text: string;
-  language: 'en' | 'ur' | 'roman';
-  result: string;
-  timestamp: number;
-}
-
-class TranslationCache {
-  private cache: Map<string, CacheEntry> = new Map();
-  private cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
-
-  getCacheKey(text: string, language: string): string {
-    return `${text}:${language}`;
-  }
-
-  get(text: string, language: 'en' | 'ur' | 'roman'): string | null {
-    const key = this.getCacheKey(text, language);
-    const entry = this.cache.get(key);
-
-    if (!entry) return null;
-
-    // Check if cache is expired
-    if (Date.now() - entry.timestamp > this.cacheExpiry) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.result;
-  }
-
-  set(text: string, language: 'en' | 'ur' | 'roman', result: string): void {
-    const key = this.getCacheKey(text, language);
-    this.cache.set(key, {
-      text,
-      language,
-      result,
-      timestamp: Date.now(),
-    });
-  }
-
-  clear(): void {
-    this.cache.clear();
+// Save cache to localStorage
+function savePersistentCache(cache: Record<string, string>): void {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch (e) {
+    console.warn('Failed to save translation cache to localStorage', e);
   }
 }
 
-export const translationCache = new TranslationCache();
+const memoryCache: Record<string, string> = loadPersistentCache();
 
-// ============================================
-// SOLUTION 3: Cached Translation Function
-// ============================================
+/**
+ * Common English to Roman Urdu dictionary helper for dynamic words
+ */
+const romanDictionary: Record<string, string> = {
+  apple: 'Seb',
+  banana: 'Kela',
+  orange: 'Santra',
+  mango: 'Aam',
+  grapes: 'Angoor',
+  watermelon: 'Tarbuz',
+  melon: 'Kharbuza',
+  guava: 'Amrood',
+  pomegranate: 'Anar',
+  papaya: 'Papita',
+  pineapple: 'Ananas',
+  strawberry: 'Strawberry',
+  peach: 'Aadu',
+  plum: 'Aloo Bukhara',
+  pear: 'Nashpati',
+  dates: 'Khajoor',
+  coconut: 'Nariyal',
+  tomato: 'Tamatar',
+  onion: 'Piyaz',
+  potato: 'Aloo',
+  carrot: 'Gajar',
+  cabbage: 'Band Gobhi',
+  cauliflower: 'Phool Gobhi',
+  spinach: 'Palak',
+  coriander: 'Dhaniya',
+  mint: 'Pudina',
+  'green chili': 'Hari Mirch',
+  'red chili': 'Lal Mirch',
+  ginger: 'Adrak',
+  garlic: 'Lehsun',
+  cucumber: 'Kheera',
+  radish: 'Mooli',
+  turnip: 'Shalgam',
+  okra: 'Bhindi',
+  eggplant: 'Baingan',
+  'bell pepper': 'Shimla Mirch',
+  peas: 'Matar',
+  beans: 'Phaliyan',
+  lemon: 'Lemon',
+  lime: 'Neebu',
+  milk: 'Doodh',
+  curd: 'Dahi',
+  yogurt: 'Dahi',
+  butter: 'Makhan',
+  ghee: 'Ghee',
+  cheese: 'Paneer',
+  egg: 'Anda',
+  bread: 'Double Roti',
+  flour: 'Aata',
+  rice: 'Chawal',
+  sugar: 'Cheeni',
+  salt: 'Namak',
+  tea: 'Chai',
+  water: 'Paani',
+  juice: 'Juice',
+  oil: 'Cooking Oil',
+  chicken: 'Chicken',
+  beef: 'Bara Gosht',
+  mutton: 'Chota Gosht',
+  fish: 'Machli',
+};
 
-export async function getTranslation(
+/**
+ * Fetch live translation from free Google Translate API (gtx) or MyMemory
+ */
+export async function fetchLiveTranslation(
   text: string,
-  targetLanguage: 'en' | 'ur' | 'roman'
+  targetLanguage: TargetLanguage
 ): Promise<string> {
-  if (targetLanguage === 'en') return text; // No translation needed for English
-
-  // Check cache first
-  const cached = translationCache.get(text, targetLanguage);
-  if (cached) {
-    return cached;
+  if (!text || !text.trim() || targetLanguage === 'en') {
+    return text;
   }
 
-  // If not in cache, fetch from API
-  const translated = await translateText(text, targetLanguage);
+  const cleanText = text.trim();
+  const cacheKey = `${cleanText.toLowerCase()}:${targetLanguage}`;
 
-  // Store in cache
-  translationCache.set(text, targetLanguage, translated);
+  // Check persistent cache
+  if (memoryCache[cacheKey]) {
+    return memoryCache[cacheKey];
+  }
 
-  return translated;
+  // Handle Roman Urdu logic
+  if (targetLanguage === 'roman') {
+    const lower = cleanText.toLowerCase();
+    if (romanDictionary[lower]) {
+      const res = romanDictionary[lower];
+      memoryCache[cacheKey] = res;
+      savePersistentCache(memoryCache);
+      return res;
+    }
+  }
+
+  try {
+    // 1. Try Google Translate Free API (gtx)
+    const googleUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ur&dt=t&q=${encodeURIComponent(cleanText)}`;
+    const res = await fetch(googleUrl);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data[0] && data[0][0] && data[0][0][0]) {
+        const translatedUrdu = data[0][0][0];
+        const finalResult = targetLanguage === 'ur' ? translatedUrdu : cleanText;
+        memoryCache[cacheKey] = finalResult;
+        savePersistentCache(memoryCache);
+        return finalResult;
+      }
+    }
+  } catch (err) {
+    console.warn('Google Translate API fallback trying MyMemory...', err);
+  }
+
+  try {
+    // 2. Fallback: MyMemory Free Translation API
+    const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanText)}&langpair=en|ur`;
+    const res = await fetch(myMemoryUrl);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.responseData && data.responseData.translatedText) {
+        const translatedUrdu = data.responseData.translatedText;
+        const finalResult = targetLanguage === 'ur' ? translatedUrdu : cleanText;
+        memoryCache[cacheKey] = finalResult;
+        savePersistentCache(memoryCache);
+        return finalResult;
+      }
+    }
+  } catch (err) {
+    console.warn('MyMemory translation error:', err);
+  }
+
+  return cleanText;
+}
+
+/**
+ * Synchronous cache lookup or fallback
+ */
+export function getCachedTranslationSync(text: string, targetLanguage: TargetLanguage): string {
+  if (!text || targetLanguage === 'en') return text;
+  const cleanText = text.trim();
+  const cacheKey = `${cleanText.toLowerCase()}:${targetLanguage}`;
+  if (memoryCache[cacheKey]) {
+    return memoryCache[cacheKey];
+  }
+  return text;
 }
